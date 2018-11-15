@@ -1,0 +1,49 @@
+{
+  "name": "visual-dom-diff",
+  "version": "0.0.0",
+  "description": "Highlight differences between two DOM trees.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "clean": "rimraf lib",
+    "prettier": "prettier --list-different 'src/**/*.{ts,tsx}'",
+    "tslint": "tslint --project .",
+    "tsc": "tsc --build .",
+    "test": "jest",
+    "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Teamwork/visual-dom-diff.git"
+  },
+  "keywords": [
+    "visual",
+    "dom",
+    "diff"
+  ],
+  "author": "Greg Kubisa <gkubisa@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Teamwork/visual-dom-diff/issues"
+  },
+  "homepage": "https://github.com/Teamwork/visual-dom-diff#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build"
+    }
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.9",
+    "husky": "^1.1.4",
+    "jest": "^23.6.0",
+    "prettier": "^1.15.2",
+    "rimraf": "^2.6.2",
+    "ts-jest": "^23.10.4",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.16.0",
+    "typescript": "^3.1.6"
+  }
+}
