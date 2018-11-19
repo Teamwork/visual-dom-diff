@@ -60,7 +60,7 @@ test('skip certain nodes', () => {
 test('skip child nodes of certain nodes', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipChildren: node => node.nodeName === 'TR'
+            skipChildNodes: node => node.nodeName === 'TR'
         })
     ]).toStrictEqual([fragment, table, tr1, tr2, img1, img2, img3])
 })
@@ -76,7 +76,7 @@ test('skip the root node', () => {
 test('skip child nodes of the root node', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipChildren: node => node === fragment
+            skipChildNodes: node => node === fragment
         })
     ]).toStrictEqual([fragment])
 })

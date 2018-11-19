@@ -2,7 +2,7 @@ import { NodePredicate } from './util'
 
 export interface DomIteratorOptions {
     skip?: NodePredicate
-    skipChildren?: NodePredicate
+    skipChildNodes?: NodePredicate
 }
 
 export class DomIterator implements IterableIterator<Node> {
@@ -31,7 +31,7 @@ export class DomIterator implements IterableIterator<Node> {
         if (
             this.descend &&
             this.nextNode.firstChild &&
-            !this.skipChildren(this.nextNode)
+            !this.skipChildNodes(this.nextNode)
         ) {
             this.nextNode = this.nextNode.firstChild
         } else if (this.nextNode === this.rootNode) {
@@ -56,11 +56,11 @@ export class DomIterator implements IterableIterator<Node> {
         return this.config && this.config.skip ? this.config.skip(node) : false
     }
 
-    private skipChildren(node: Node): boolean {
+    private skipChildNodes(node: Node): boolean {
         return (
             this.skip(node) ||
-            (this.config && this.config.skipChildren
-                ? this.config.skipChildren(node)
+            (this.config && this.config.skipChildNodes
+                ? this.config.skipChildNodes(node)
                 : false)
         )
     }
