@@ -50,8 +50,14 @@ export function isFormat(node: Node): boolean {
     return formatNames.has(node.nodeName)
 }
 
-export function isIgnored(_node: Node): boolean {
-    return false
+export function isIgnored(node: Node): boolean {
+    const nodeType = node.nodeType
+
+    return (
+        nodeType !== Node.TEXT_NODE &&
+        nodeType !== Node.ELEMENT_NODE &&
+        nodeType !== Node.DOCUMENT_FRAGMENT_NODE
+    )
 }
 
 export const createNodePredicate = (

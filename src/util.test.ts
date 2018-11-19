@@ -19,6 +19,7 @@ const differentAttributeNamesSpan = document.createElement('SPAN')
 const differentAttributeValuesSpan = document.createElement('SPAN')
 const video = document.createElement('VIDEO')
 const comment = document.createComment('comment')
+const fragment = document.createDocumentFragment()
 
 span.setAttribute('data-a', 'a')
 span.setAttribute('data-b', 'b')
@@ -54,6 +55,12 @@ describe('isIgnored', () => {
     })
     test('return false given a SPAN', () => {
         expect(isIgnored(span)).toBe(false)
+    })
+    test('return false given a document fragment', () => {
+        expect(isIgnored(fragment)).toBe(false)
+    })
+    test('return false given a comment', () => {
+        expect(isIgnored(comment)).toBe(true)
     })
 })
 
