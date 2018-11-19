@@ -139,3 +139,9 @@ export function getAncestorCount(node: Node, root: Node | null = null) {
 
     return ancestorCount
 }
+
+export function never(
+    message: string = 'visual-dom-diff: Should never happen'
+): never {
+    throw new Error(message)
+}

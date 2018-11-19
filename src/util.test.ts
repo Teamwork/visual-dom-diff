@@ -7,7 +7,8 @@ import {
     isElement,
     isFormat,
     isIgnored,
-    isText
+    isText,
+    never
 } from './util'
 
 const text = document.createTextNode('text')
@@ -234,5 +235,16 @@ describe('getAncestorCount', () => {
     })
     test('node: DIV, root: text', () => {
         expect(getAncestorCount(d, t)).toBe(0)
+    })
+})
+
+describe('never', () => {
+    test('default message', () => {
+        expect(() => never()).toThrowError(
+            'visual-dom-diff: Should never happen'
+        )
+    })
+    test('custom message', () => {
+        expect(() => never('Custom message')).toThrowError('Custom message')
     })
 })
