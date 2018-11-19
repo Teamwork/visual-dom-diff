@@ -9,6 +9,10 @@ export function isText(node: Node): node is Text {
     return node.nodeType === Node.TEXT_NODE
 }
 
+export function isDocumentFragment(node: Node): node is DocumentFragment {
+    return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+}
+
 const skipChildrenMap = new Set()
 skipChildrenMap.add('IMG')
 skipChildrenMap.add('VIDEO')

@@ -1,5 +1,6 @@
-import { visualDomDiff } from './index'
+import * as diff from './diff'
+import * as index from './index'
 
 test('exports visualDomDiff', () => {
-    expect(visualDomDiff).toBeInstanceOf(Function)
+    expect(index.visualDomDiff).toBe(diff.visualDomDiff)
 })

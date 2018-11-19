@@ -8,7 +8,8 @@ import {
     isText,
     never,
     skipChildren,
-    skipSelfAndChildren
+    skipSelfAndChildren,
+    isDocumentFragment
 } from './util'
 
 const text = document.createTextNode('text')
@@ -39,6 +40,9 @@ describe('isText', () => {
     test('return false given a SPAN', () => {
         expect(isText(span)).toBe(false)
     })
+    test('return false given a document fragment', () => {
+        expect(isText(fragment)).toBe(false)
+    })
 })
 
 describe('isElement', () => {
@@ -47,6 +51,21 @@ describe('isElement', () => {
     })
     test('return true given a SPAN', () => {
         expect(isElement(span)).toBe(true)
+    })
+    test('return false given a document fragment', () => {
+        expect(isElement(fragment)).toBe(false)
+    })
+})
+
+describe('isDocumentFragment', () => {
+    test('return false given a text node', () => {
+        expect(isDocumentFragment(text)).toBe(false)
+    })
+    test('return false given a SPAN', () => {
+        expect(isDocumentFragment(span)).toBe(false)
+    })
+    test('return true given a document fragment', () => {
+        expect(isDocumentFragment(fragment)).toBe(true)
     })
 })
 
