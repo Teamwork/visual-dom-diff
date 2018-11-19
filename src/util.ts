@@ -61,3 +61,75 @@ export const createNodePredicate = (
     const result = override && override(node)
     return typeof result === 'boolean' ? result : predicate(node)
 }
+
+export function compareArrays<T>(array1: T[], array2: T[]): boolean {
+    if (array1.length !== array2.length) {
+        return false
+    }
+
+    for (let i = 0, l = array1.length; i < l; ++i) {
+        if (array1[i] !== array2[i]) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
+ * Compares Text and Element nodes for equality. Returns false for all other node types.
+ * @param node1 The first node to compare.
+ * @param node2 The second node to compare.
+ */
+export function compareNodes(node1: Node, node2: Node): boolean {
+    if (
+        node1.nodeType !== node2.nodeType ||
+        node1.nodeName !== node2.nodeName
+    ) {
+        return false
+    }
+
+    if (isText(node1) && isText(node2)) {
+        if (node1.data !== node2.data) {
+            return false
+        }
+    } else if (isElement(node1) && isElement(node2)) {
+        const attributeNames1 = node1.getAttributeNames().sort()
+        const attributeNames2 = node2.getAttributeNames().sort()
+
+        if (!compareArrays(attributeNames1, attributeNames2)) {
+            return false
+        }
+
+        for (let i = 0, l = attributeNames1.length; i < l; ++i) {
+            const name = attributeNames1[i]
+            const value1 = node1.getAttribute(name)
+            const value2 = node2.getAttribute(name)
+
+            if (value1 !== value2) {
+                return false
+            }
+        }
+    } else {
+        return false
+    }
+
+    return true
+}
+
+/**
+ * Returns the number of ancestors of `node`.
+ * @param node The node whose ancestors should be counted.
+ * @param root The optional root node.
+ */
+export function getAncestorCount(node: Node, root: Node | null = null) {
+    let ancestorCount = 0
+    let currentNode: Node = node
+
+    while (currentNode.parentNode && currentNode !== root) {
+        currentNode = currentNode.parentNode
+        ancestorCount++
+    }
+
+    return ancestorCount
+}
