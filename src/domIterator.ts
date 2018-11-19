@@ -1,8 +1,8 @@
 import { NodePredicate } from './util'
 
 export interface DomIteratorOptions {
-    skip?: NodePredicate
-    skipChildNodes?: NodePredicate
+    skipSelfAndChildren?: NodePredicate
+    skipChildren?: NodePredicate
 }
 
 export class DomIterator implements IterableIterator<Node> {
@@ -13,7 +13,9 @@ export class DomIterator implements IterableIterator<Node> {
         private rootNode: Node,
         private config?: DomIteratorOptions
     ) {
-        this.nextNode = this.skip(this.rootNode) ? null : this.rootNode
+        this.nextNode = this.skipSelfAndChildren(this.rootNode)
+            ? null
+            : this.rootNode
     }
 
     public [Symbol.iterator](): IterableIterator<Node> {
@@ -31,7 +33,7 @@ export class DomIterator implements IterableIterator<Node> {
         if (
             this.descend &&
             this.nextNode.firstChild &&
-            !this.skipChildNodes(this.nextNode)
+            !this.skipChildren(this.nextNode)
         ) {
             this.nextNode = this.nextNode.firstChild
         } else if (this.nextNode === this.rootNode) {
@@ -45,22 +47,24 @@ export class DomIterator implements IterableIterator<Node> {
             this.next() // Skip this node, as we've visited it already.
         }
 
-        if (this.nextNode && this.skip(this.nextNode)) {
+        if (this.nextNode && this.skipSelfAndChildren(this.nextNode)) {
             this.next() // Skip this node, as directed by the config.
         }
 
         return { done, value }
     }
 
-    private skip(node: Node): boolean {
-        return this.config && this.config.skip ? this.config.skip(node) : false
+    private skipSelfAndChildren(node: Node): boolean {
+        return this.config && this.config.skipSelfAndChildren
+            ? this.config.skipSelfAndChildren(node)
+            : false
     }
 
-    private skipChildNodes(node: Node): boolean {
+    private skipChildren(node: Node): boolean {
         return (
-            this.skip(node) ||
-            (this.config && this.config.skipChildNodes
-                ? this.config.skipChildNodes(node)
+            this.skipSelfAndChildren(node) ||
+            (this.config && this.config.skipChildren
+                ? this.config.skipChildren(node)
                 : false)
         )
     }

@@ -9,12 +9,12 @@ export function isText(node: Node): node is Text {
     return node.nodeType === Node.TEXT_NODE
 }
 
-const componentNames = new Set()
-componentNames.add('IMG')
-componentNames.add('VIDEO')
-componentNames.add('IFRAME')
-componentNames.add('OBJECT')
-componentNames.add('SVG')
+const skipChildrenMap = new Set()
+skipChildrenMap.add('IMG')
+skipChildrenMap.add('VIDEO')
+skipChildrenMap.add('IFRAME')
+skipChildrenMap.add('OBJECT')
+skipChildrenMap.add('SVG')
 
 const formatNames = new Set()
 formatNames.add('BDO')
@@ -42,15 +42,11 @@ formatNames.add('S')
 formatNames.add('U')
 formatNames.add('SPAN')
 
-export function isComponent(node: Node): boolean {
-    return componentNames.has(node.nodeName)
+export function skipChildren(node: Node): boolean {
+    return skipChildrenMap.has(node.nodeName)
 }
 
-export function isFormat(node: Node): boolean {
-    return formatNames.has(node.nodeName)
-}
-
-export function isIgnored(node: Node): boolean {
+export function skipSelfAndChildren(node: Node): boolean {
     const nodeType = node.nodeType
 
     return (
@@ -60,13 +56,22 @@ export function isIgnored(node: Node): boolean {
     )
 }
 
-export const createNodePredicate = (
-    predicate: NodePredicate,
+export function isFormat(node: Node): boolean {
+    return formatNames.has(node.nodeName)
+}
+
+export const createNodePredicate = (predicate: NodePredicate) => (
     override?: IndefiniteNodePredicate
 ) => (node: Node) => {
     const result = override && override(node)
     return typeof result === 'boolean' ? result : predicate(node)
 }
+
+export const createSkipChildrenPredicate = createNodePredicate(skipChildren)
+export const createSkipSelfAndChildrenPredicate = createNodePredicate(
+    skipSelfAndChildren
+)
+export const createFormatPredicate = createNodePredicate(isFormat)
 
 export function compareArrays<T>(array1: T[], array2: T[]): boolean {
     if (array1.length !== array2.length) {

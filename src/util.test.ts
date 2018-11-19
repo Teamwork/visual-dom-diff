@@ -3,12 +3,12 @@ import {
     compareNodes,
     createNodePredicate,
     getAncestorCount,
-    isComponent,
     isElement,
     isFormat,
-    isIgnored,
     isText,
-    never
+    never,
+    skipChildren,
+    skipSelfAndChildren
 } from './util'
 
 const text = document.createTextNode('text')
@@ -50,30 +50,30 @@ describe('isElement', () => {
     })
 })
 
-describe('isIgnored', () => {
+describe('skipSelfAndChildren', () => {
     test('return false given a text node', () => {
-        expect(isIgnored(text)).toBe(false)
+        expect(skipSelfAndChildren(text)).toBe(false)
     })
     test('return false given a SPAN', () => {
-        expect(isIgnored(span)).toBe(false)
+        expect(skipSelfAndChildren(span)).toBe(false)
     })
     test('return false given a document fragment', () => {
-        expect(isIgnored(fragment)).toBe(false)
+        expect(skipSelfAndChildren(fragment)).toBe(false)
     })
     test('return false given a comment', () => {
-        expect(isIgnored(comment)).toBe(true)
+        expect(skipSelfAndChildren(comment)).toBe(true)
     })
 })
 
-describe('isComponent', () => {
+describe('skipChildren', () => {
     test('return false given a text node', () => {
-        expect(isComponent(text)).toBe(false)
+        expect(skipChildren(text)).toBe(false)
     })
     test('return false given a SPAN', () => {
-        expect(isComponent(span)).toBe(false)
+        expect(skipChildren(span)).toBe(false)
     })
     test('return true given a VIDEO', () => {
-        expect(isComponent(video)).toBe(true)
+        expect(skipChildren(video)).toBe(true)
     })
 })
 
@@ -91,7 +91,7 @@ describe('isFormat', () => {
 
 describe('createNodePredicate', () => {
     describe('no override', () => {
-        const predicate = createNodePredicate(isText)
+        const predicate = createNodePredicate(isText)()
         test('return true', () => {
             expect(predicate(text)).toBe(true)
         })
@@ -101,7 +101,7 @@ describe('createNodePredicate', () => {
     })
 
     describe('override returns undefined', () => {
-        const predicate = createNodePredicate(isText, () => undefined)
+        const predicate = createNodePredicate(isText)(() => undefined)
         test('return true', () => {
             expect(predicate(text)).toBe(true)
         })
@@ -110,7 +110,7 @@ describe('createNodePredicate', () => {
         })
     })
     describe('override returns a boolean', () => {
-        const predicate = createNodePredicate(isText, isElement)
+        const predicate = createNodePredicate(isText)(isElement)
         test('return true', () => {
             expect(predicate(span)).toBe(true)
         })
