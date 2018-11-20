@@ -1,6 +1,6 @@
 import { Options } from './config'
 import { visualDomDiff } from './diff'
-import { isElement, isText } from './util'
+import { compareNodes, isElement, isText } from './util'
 
 jest.setTimeout(2000)
 
@@ -13,11 +13,15 @@ function fragmentToHtml(documentFragment: DocumentFragment): string {
     )
 }
 
-// function htmlToFragment(html: string): DocumentFragment {
-//     const template = document.createElement('template')
-//     template.innerHTML = html
-//     return template.content
-// }
+function htmlToFragment(html: string): DocumentFragment {
+    const template = document.createElement('template')
+    template.innerHTML = html
+    return template.content
+}
+
+function trimLines(text: string): string {
+    return text.replace(/(^|\n)\s*/g, '')
+}
 
 test.each([
     [
@@ -31,7 +35,7 @@ test.each([
         'empty identical DIVs',
         document.createElement('DIV'),
         document.createElement('DIV'),
-        '',
+        '<div></div>',
         undefined
     ],
     [
@@ -46,6 +50,28 @@ test.each([
         document.createTextNode('test'),
         document.createTextNode('test'),
         'test',
+        undefined
+    ],
+    [
+        'identical text in a DIV',
+        (() => {
+            const div = document.createElement('DIV')
+            div.textContent = 'test'
+            return div
+        })(),
+        (() => {
+            const div = document.createElement('DIV')
+            div.textContent = 'test'
+            return div
+        })(),
+        '<div>test</div>',
+        undefined
+    ],
+    [
+        'identical text in a DIV in a document fragment',
+        htmlToFragment('<div>test</div>'),
+        htmlToFragment('<div>test</div>'),
+        '<div>test</div>',
         undefined
     ],
     [
@@ -73,6 +99,54 @@ test.each([
         })(),
         'Hello World',
         undefined
+    ],
+    [
+        'identical images',
+        document.createElement('IMG'),
+        document.createElement('IMG'),
+        '<img>',
+        undefined
+    ],
+    [
+        'complex identical content',
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p><strong>Paragraph 1</strong></p>
+                    <p><strong><em>Paragraph 2</em></strong></p>
+                    <img src="image.jpg">
+                    <img src="image.png">
+                    More text
+                    <video></video>
+                </div>
+                <div></div>
+                `)
+        ),
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p><strong>Paragraph 1</strong></p>
+                    <p><strong><em>Paragraph 2</em></strong></p>
+                    <img src="image.jpg">
+                    <img src="image.png">
+                    More text
+                    <video></video>
+                </div>
+                <div></div>
+                `)
+        ),
+        trimLines(`
+            <div>
+                <p><strong>Paragraph 1</strong></p>
+                <p><strong><em>Paragraph 2</em></strong></p>
+                <img src="image.jpg">
+                <img src="image.png">
+                More text
+                <video></video>
+            </div>
+            <div></div>
+            `),
+        undefined
     ]
 ])(
     '%s',
@@ -83,13 +157,12 @@ test.each([
         expectedHtml: string,
         options?: Options
     ) => {
-        if (_message === 'empty identical DIVs') {
-            return
-        }
-        // const oldClone = oldNode.cloneNode(true)
-        // const newClone = newNode.cloneNode(true)
+        const oldClone = oldNode.cloneNode(true)
+        const newClone = newNode.cloneNode(true)
         const fragment = visualDomDiff(oldNode, newNode, options)
         expect(fragment).toBeInstanceOf(DocumentFragment)
         expect(fragmentToHtml(fragment)).toBe(expectedHtml)
+        expect(compareNodes(oldNode, oldClone, true)).toBe(true)
+        expect(compareNodes(newNode, newClone, true)).toBe(true)
     }
 )

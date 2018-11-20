@@ -50,6 +50,7 @@ export function visualDomDiff(
     function appendChild(node: Node, depth: number): void {
         // Make sure we append the new child to the correct parent node.
         while (outputDepth >= depth) {
+            /* istanbul ignore if */
             if (!outputNode.parentNode) {
                 return never()
             }
@@ -57,6 +58,7 @@ export function visualDomDiff(
             outputDepth--
         }
 
+        /* istanbul ignore if */
         if (outputDepth + 1 !== depth) {
             return never()
         }
@@ -125,13 +127,15 @@ export function visualDomDiff(
             nextNew(0)
         } else if (!diffDone) {
             if (diffItem.removed) {
-                // Insert old content.
+                // Copy old content.
             } else if (diffItem.added) {
-                // Insert new content.
-            } else if (oldDone || newDone) {
-                return never()
+                // Copy new content.
             } else {
-                // Insert common content.
+                /* istanbul ignore if */
+                if (oldDone || newDone) {
+                    return never()
+                }
+                // Copy common content.
                 if (isText(oldNode) && isText(newNode)) {
                     // Identical text nodes.
                     const length = Math.min(
@@ -159,10 +163,20 @@ export function visualDomDiff(
                     // Different nodes.
                 }
             }
+        } else if (!oldDone && !newDone) {
+            // Copy the content not covered by the text diff.
+            if (compareNodes(oldNode, newNode)) {
+                // Identical nodes.
+                appendChild(newNode.cloneNode(false), getNewDepth(newNode))
+                nextOld(0)
+                nextNew(0)
+            } else {
+                // Different nodes.
+            }
         } else if (!oldDone) {
-            // Insert old content.
+            // Copy old content.
         } else if (!newDone) {
-            // Insert new content.
+            // Copy new content.
         }
     }
 
