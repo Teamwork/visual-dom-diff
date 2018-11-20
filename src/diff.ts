@@ -1,28 +1,13 @@
 import { diffWords } from 'diff'
-import { DomIterator, DomIteratorOptions } from './domIterator'
+import { Config, Options, optionsToConfig } from './config'
+import { DomIterator } from './domIterator'
 import {
-    createFormatPredicate,
-    createSkipChildrenPredicate,
-    createSkipSelfAndChildrenPredicate,
+    compareNodes,
     getAncestorCount,
-    IndefiniteNodePredicate,
     isDocumentFragment,
     isText,
-    never,
-    NodePredicate
+    never
 } from './util'
-
-export interface Options {
-    skip?: IndefiniteNodePredicate
-    skipChildren?: IndefiniteNodePredicate
-    isFormat?: IndefiniteNodePredicate
-}
-
-interface Config extends Options, DomIteratorOptions {
-    readonly skipSelfAndChildren: NodePredicate
-    readonly skipChildren: NodePredicate
-    readonly isFormat: NodePredicate
-}
 
 function serialize(root: Node, config: Config): string {
     return [...new DomIterator(root, config)].reduce(
@@ -38,11 +23,8 @@ export function visualDomDiff(
     newRootNode: Node,
     options: Options = {}
 ): DocumentFragment {
-    const isFormat = createFormatPredicate(options.isFormat)
-    const skipChildren = createSkipChildrenPredicate(options.skipChildren)
-    const skipSelfAndChildren = createSkipSelfAndChildrenPredicate(options.skip)
-    const config: Config = { isFormat, skipChildren, skipSelfAndChildren }
-
+    const config = optionsToConfig(options)
+    const { skipChildren } = config
     const diffIterator = diffWords(
         serialize(oldRootNode, config),
         serialize(newRootNode, config)
@@ -92,31 +74,55 @@ export function visualDomDiff(
     //     )
     // }
 
-    function getNewDepth(node: Node) {
+    function getNewDepth(node: Node): number {
         return (
             getAncestorCount(node, newRootNode) -
             (isDocumentFragment(newRootNode) ? 1 : 0)
         )
     }
 
-    while (!diffDone || !oldDone || !newDone) {
-        if (!diffDone && diffItem.value.length === 0) {
-            // Skip an empty diff item.
+    function nextDiff(step: number): void {
+        diffOffset += step
+        if (diffOffset === diffItem.value.length) {
             ;({ done: diffDone, value: diffItem } = diffIterator.next())
+            diffOffset = 0
+        }
+    }
+
+    function nextOld(step: number): void {
+        oldOffset += step
+        if (!isText(oldNode) || oldOffset === oldNode.length) {
+            ;({ done: oldDone, value: oldNode } = oldIterator.next())
+            oldOffset = 0
+        }
+    }
+
+    function nextNew(step: number): void {
+        newOffset += step
+        if (!isText(newNode) || newOffset === newNode.length) {
+            ;({ done: newDone, value: newNode } = newIterator.next())
+            newOffset = 0
+        }
+    }
+
+    while (!diffDone || !oldDone || !newDone) {
+        if (!diffDone && diffItem.value.length === diffOffset) {
+            // Skip an empty diff item.
+            nextDiff(0)
         } else if (
             !oldDone &&
-            ((isText(oldNode) && oldNode.length === 0) ||
+            ((isText(oldNode) && oldNode.length === oldOffset) ||
                 isDocumentFragment(oldNode))
         ) {
             // Skip an empty text node or a document fragment.
-            ;({ done: oldDone, value: oldNode } = oldIterator.next())
+            nextOld(0)
         } else if (
             !newDone &&
-            ((isText(newNode) && newNode.length === 0) ||
+            ((isText(newNode) && newNode.length === newOffset) ||
                 isDocumentFragment(newNode))
         ) {
             // Skip an empty text node or a document fragment.
-            ;({ done: newDone, value: newNode } = newIterator.next())
+            nextNew(0)
         } else if (!diffDone) {
             if (diffItem.removed) {
                 // Insert old content.
@@ -127,6 +133,7 @@ export function visualDomDiff(
             } else {
                 // Insert common content.
                 if (isText(oldNode) && isText(newNode)) {
+                    // Identical text nodes.
                     const length = Math.min(
                         diffItem.value.length - diffOffset,
                         oldNode.length - oldOffset,
@@ -138,35 +145,18 @@ export function visualDomDiff(
                             diffOffset + length
                         )
                     )
-                    const depth = getNewDepth(newNode)
-
-                    appendChild(node, depth)
-
-                    diffOffset += length
-                    oldOffset += length
-                    newOffset += length
-
-                    if (diffOffset === diffItem.value.length) {
-                        ;({
-                            done: diffDone,
-                            value: diffItem
-                        } = diffIterator.next())
-                        diffOffset = 0
-                    }
-                    if (oldOffset === oldNode.length) {
-                        ;({
-                            done: oldDone,
-                            value: oldNode
-                        } = oldIterator.next())
-                        oldOffset = 0
-                    }
-                    if (newOffset === newNode.length) {
-                        ;({
-                            done: newDone,
-                            value: newNode
-                        } = newIterator.next())
-                        newOffset = 0
-                    }
+                    appendChild(node, getNewDepth(newNode))
+                    nextDiff(length)
+                    nextOld(length)
+                    nextNew(length)
+                } else if (compareNodes(oldNode, newNode)) {
+                    // Identical non-text nodes.
+                    appendChild(newNode.cloneNode(false), getNewDepth(newNode))
+                    nextDiff(skipChildren(newNode) ? 1 : 0)
+                    nextOld(0)
+                    nextNew(0)
+                } else {
+                    // Different nodes.
                 }
             }
         } else if (!oldDone) {

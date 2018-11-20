@@ -1,15 +1,12 @@
 import {
     compareArrays,
     compareNodes,
-    createNodePredicate,
     getAncestorCount,
+    isComment,
+    isDocumentFragment,
     isElement,
-    isFormat,
     isText,
-    never,
-    skipChildren,
-    skipSelfAndChildren,
-    isDocumentFragment
+    never
 } from './util'
 
 const text = document.createTextNode('text')
@@ -19,9 +16,13 @@ const span = document.createElement('SPAN')
 const identicalSpan = document.createElement('SPAN')
 const differentAttributeNamesSpan = document.createElement('SPAN')
 const differentAttributeValuesSpan = document.createElement('SPAN')
+const differentChildNodesSpan = document.createElement('SPAN')
 const video = document.createElement('VIDEO')
 const comment = document.createComment('comment')
+const identicalComment = document.createComment('comment')
+const differentComment = document.createComment('different comment')
 const fragment = document.createDocumentFragment()
+const anotherFragment = document.createDocumentFragment()
 
 span.setAttribute('data-a', 'a')
 span.setAttribute('data-b', 'b')
@@ -32,6 +33,9 @@ differentAttributeNamesSpan.setAttribute('data-b', 'b')
 differentAttributeNamesSpan.setAttribute('data-c', 'c')
 differentAttributeValuesSpan.setAttribute('data-a', 'different a')
 differentAttributeValuesSpan.setAttribute('data-b', 'different b')
+differentChildNodesSpan.setAttribute('data-a', 'a')
+differentChildNodesSpan.setAttribute('data-b', 'b')
+differentChildNodesSpan.appendChild(document.createTextNode('different'))
 
 describe('isText', () => {
     test('return true given a text node', () => {
@@ -42,6 +46,9 @@ describe('isText', () => {
     })
     test('return false given a document fragment', () => {
         expect(isText(fragment)).toBe(false)
+    })
+    test('return false given a comment', () => {
+        expect(isText(comment)).toBe(false)
     })
 })
 
@@ -55,6 +62,9 @@ describe('isElement', () => {
     test('return false given a document fragment', () => {
         expect(isElement(fragment)).toBe(false)
     })
+    test('return false given a comment', () => {
+        expect(isElement(comment)).toBe(false)
+    })
 })
 
 describe('isDocumentFragment', () => {
@@ -67,75 +77,23 @@ describe('isDocumentFragment', () => {
     test('return true given a document fragment', () => {
         expect(isDocumentFragment(fragment)).toBe(true)
     })
-})
-
-describe('skipSelfAndChildren', () => {
-    test('return false given a text node', () => {
-        expect(skipSelfAndChildren(text)).toBe(false)
-    })
-    test('return false given a SPAN', () => {
-        expect(skipSelfAndChildren(span)).toBe(false)
-    })
-    test('return false given a document fragment', () => {
-        expect(skipSelfAndChildren(fragment)).toBe(false)
-    })
     test('return false given a comment', () => {
-        expect(skipSelfAndChildren(comment)).toBe(true)
+        expect(isDocumentFragment(comment)).toBe(false)
     })
 })
 
-describe('skipChildren', () => {
+describe('isComment', () => {
     test('return false given a text node', () => {
-        expect(skipChildren(text)).toBe(false)
+        expect(isComment(text)).toBe(false)
     })
     test('return false given a SPAN', () => {
-        expect(skipChildren(span)).toBe(false)
+        expect(isComment(span)).toBe(false)
     })
-    test('return true given a VIDEO', () => {
-        expect(skipChildren(video)).toBe(true)
+    test('return true given a document fragment', () => {
+        expect(isComment(fragment)).toBe(false)
     })
-})
-
-describe('isFormat', () => {
-    test('return false given a text node', () => {
-        expect(isFormat(text)).toBe(false)
-    })
-    test('return true given a SPAN', () => {
-        expect(isFormat(span)).toBe(true)
-    })
-    test('return false given a VIDEO', () => {
-        expect(isFormat(video)).toBe(false)
-    })
-})
-
-describe('createNodePredicate', () => {
-    describe('no override', () => {
-        const predicate = createNodePredicate(isText)()
-        test('return true', () => {
-            expect(predicate(text)).toBe(true)
-        })
-        test('return false', () => {
-            expect(predicate(span)).toBe(false)
-        })
-    })
-
-    describe('override returns undefined', () => {
-        const predicate = createNodePredicate(isText)(() => undefined)
-        test('return true', () => {
-            expect(predicate(text)).toBe(true)
-        })
-        test('return false', () => {
-            expect(predicate(span)).toBe(false)
-        })
-    })
-    describe('override returns a boolean', () => {
-        const predicate = createNodePredicate(isText)(isElement)
-        test('return true', () => {
-            expect(predicate(span)).toBe(true)
-        })
-        test('return false', () => {
-            expect(predicate(text)).toBe(false)
-        })
+    test('return true given a comment', () => {
+        expect(isComment(comment)).toBe(true)
     })
 })
 
@@ -155,29 +113,79 @@ describe('compareArrays', () => {
 })
 
 describe('compareNodes', () => {
-    test('different node types', () => {
-        expect(compareNodes(text, span)).toBe(false)
+    describe('shallow', () => {
+        test('different node types', () => {
+            expect(compareNodes(text, span)).toBe(false)
+        })
+        test('different node names', () => {
+            expect(compareNodes(video, span)).toBe(false)
+        })
+        test('different comment nodes', () => {
+            expect(compareNodes(comment, differentComment)).toBe(false)
+        })
+        test('identical comment nodes', () => {
+            expect(compareNodes(comment, identicalComment)).toBe(true)
+        })
+        test('different text nodes', () => {
+            expect(compareNodes(text, differentText)).toBe(false)
+        })
+        test('identical text nodes', () => {
+            expect(compareNodes(text, identicalText)).toBe(true)
+        })
+        test('elements with different attribute names', () => {
+            expect(compareNodes(span, differentAttributeNamesSpan)).toBe(false)
+        })
+        test('elements with different attribute values', () => {
+            expect(compareNodes(span, differentAttributeValuesSpan)).toBe(false)
+        })
+        test('elements with different childNodes', () => {
+            expect(compareNodes(span, differentChildNodesSpan)).toBe(true)
+        })
+        test('identical elements', () => {
+            expect(compareNodes(span, identicalSpan)).toBe(true)
+        })
+        test('document fragments', () => {
+            expect(compareNodes(fragment, anotherFragment)).toBe(true)
+        })
     })
-    test('different node names', () => {
-        expect(compareNodes(video, span)).toBe(false)
-    })
-    test('identical non-text and non-elements nodes', () => {
-        expect(compareNodes(comment, comment)).toBe(false)
-    })
-    test('different text nodes', () => {
-        expect(compareNodes(text, differentText)).toBe(false)
-    })
-    test('identical text nodes', () => {
-        expect(compareNodes(text, identicalText)).toBe(true)
-    })
-    test('elements with different attribute names', () => {
-        expect(compareNodes(span, differentAttributeNamesSpan)).toBe(false)
-    })
-    test('elements with different attribute values', () => {
-        expect(compareNodes(span, differentAttributeValuesSpan)).toBe(false)
-    })
-    test('identical elements', () => {
-        expect(compareNodes(span, identicalSpan)).toBe(true)
+    describe('deep', () => {
+        const rootNode = document.createDocumentFragment()
+        const div = document.createElement('DIV')
+        const p = document.createElement('P')
+        const em = document.createElement('EM')
+        const strong = document.createElement('STRONG')
+        rootNode.append(div, p)
+        p.append(em, strong)
+        em.textContent = 'em'
+        strong.textContent = 'strong'
+
+        test('identical nodes', () => {
+            expect(
+                compareNodes(
+                    rootNode.cloneNode(true),
+                    rootNode.cloneNode(true),
+                    true
+                )
+            ).toBe(true)
+        })
+        test('extraneous child', () => {
+            const differentRootNode = rootNode.cloneNode(true)
+            ;((differentRootNode.lastChild as Node)
+                .lastChild as Node).appendChild(
+                document.createTextNode('different')
+            )
+            expect(
+                compareNodes(rootNode.cloneNode(true), differentRootNode, true)
+            ).toBe(false)
+        })
+        test('child with a different attribute', () => {
+            const differentRootNode = rootNode.cloneNode(true)
+            ;((differentRootNode.lastChild as Node)
+                .lastChild as Element).setAttribute('data-a', 'a')
+            expect(
+                compareNodes(rootNode.cloneNode(true), differentRootNode, true)
+            ).toBe(false)
+        })
     })
 })
 

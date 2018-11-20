@@ -13,69 +13,9 @@ export function isDocumentFragment(node: Node): node is DocumentFragment {
     return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE
 }
 
-const skipChildrenMap = new Set()
-skipChildrenMap.add('IMG')
-skipChildrenMap.add('VIDEO')
-skipChildrenMap.add('IFRAME')
-skipChildrenMap.add('OBJECT')
-skipChildrenMap.add('SVG')
-
-const formatNames = new Set()
-formatNames.add('BDO')
-formatNames.add('BDI')
-formatNames.add('Q')
-formatNames.add('CITE')
-formatNames.add('CODE')
-formatNames.add('DATA')
-formatNames.add('TIME')
-formatNames.add('VAR')
-formatNames.add('DFN')
-formatNames.add('ABBR')
-formatNames.add('STRONG')
-formatNames.add('EM')
-formatNames.add('BIG')
-formatNames.add('SMALL')
-formatNames.add('MARK')
-formatNames.add('SUB')
-formatNames.add('SUP')
-formatNames.add('SAMP')
-formatNames.add('KBD')
-formatNames.add('B')
-formatNames.add('I')
-formatNames.add('S')
-formatNames.add('U')
-formatNames.add('SPAN')
-
-export function skipChildren(node: Node): boolean {
-    return skipChildrenMap.has(node.nodeName)
+export function isComment(node: Node): node is Comment {
+    return node.nodeType === Node.COMMENT_NODE
 }
-
-export function skipSelfAndChildren(node: Node): boolean {
-    const nodeType = node.nodeType
-
-    return (
-        nodeType !== Node.TEXT_NODE &&
-        nodeType !== Node.ELEMENT_NODE &&
-        nodeType !== Node.DOCUMENT_FRAGMENT_NODE
-    )
-}
-
-export function isFormat(node: Node): boolean {
-    return formatNames.has(node.nodeName)
-}
-
-export const createNodePredicate = (predicate: NodePredicate) => (
-    override?: IndefiniteNodePredicate
-) => (node: Node) => {
-    const result = override && override(node)
-    return typeof result === 'boolean' ? result : predicate(node)
-}
-
-export const createSkipChildrenPredicate = createNodePredicate(skipChildren)
-export const createSkipSelfAndChildrenPredicate = createNodePredicate(
-    skipSelfAndChildren
-)
-export const createFormatPredicate = createNodePredicate(isFormat)
 
 export function compareArrays<T>(array1: T[], array2: T[]): boolean {
     if (array1.length !== array2.length) {
@@ -92,11 +32,16 @@ export function compareArrays<T>(array1: T[], array2: T[]): boolean {
 }
 
 /**
- * Compares Text and Element nodes for equality. Returns false for all other node types.
+ * Compares DOM nodes for equality.
  * @param node1 The first node to compare.
  * @param node2 The second node to compare.
+ * @param deep If true, the child nodes are compared recursively too.
  */
-export function compareNodes(node1: Node, node2: Node): boolean {
+export function compareNodes(
+    node1: Node,
+    node2: Node,
+    deep: boolean = false
+): boolean {
     if (
         node1.nodeType !== node2.nodeType ||
         node1.nodeName !== node2.nodeName
@@ -104,13 +49,15 @@ export function compareNodes(node1: Node, node2: Node): boolean {
         return false
     }
 
-    if (isText(node1) && isText(node2)) {
-        if (node1.data !== node2.data) {
+    if (isText(node1) || isComment(node1)) {
+        if (node1.data !== (node2 as typeof node1).data) {
             return false
         }
-    } else if (isElement(node1) && isElement(node2)) {
+    } else if (isElement(node1)) {
         const attributeNames1 = node1.getAttributeNames().sort()
-        const attributeNames2 = node2.getAttributeNames().sort()
+        const attributeNames2 = (node2 as typeof node1)
+            .getAttributeNames()
+            .sort()
 
         if (!compareArrays(attributeNames1, attributeNames2)) {
             return false
@@ -119,14 +66,27 @@ export function compareNodes(node1: Node, node2: Node): boolean {
         for (let i = 0, l = attributeNames1.length; i < l; ++i) {
             const name = attributeNames1[i]
             const value1 = node1.getAttribute(name)
-            const value2 = node2.getAttribute(name)
+            const value2 = (node2 as typeof node1).getAttribute(name)
 
             if (value1 !== value2) {
                 return false
             }
         }
-    } else {
-        return false
+    }
+
+    if (deep) {
+        const childNodes1 = node1.childNodes
+        const childNodes2 = node2.childNodes
+
+        if (childNodes1.length !== childNodes2.length) {
+            return false
+        }
+
+        for (let i = 0, l = childNodes1.length; i < l; ++i) {
+            if (!compareNodes(childNodes1[i], childNodes2[i], deep)) {
+                return false
+            }
+        }
     }
 
     return true
