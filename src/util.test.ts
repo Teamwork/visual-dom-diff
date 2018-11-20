@@ -2,6 +2,7 @@ import {
     compareArrays,
     compareNodes,
     getAncestorCount,
+    getAncestors,
     isComment,
     isDocumentFragment,
     isElement,
@@ -262,6 +263,40 @@ describe('getAncestorCount', () => {
     })
     test('node: DIV, root: text', () => {
         expect(getAncestorCount(d, t)).toBe(0)
+    })
+})
+
+describe('getAncestors', () => {
+    const node1 = document.createDocumentFragment()
+    const node2 = document.createElement('DIV')
+    const node3 = document.createTextNode('test')
+
+    node1.append(node2)
+    node2.append(node3)
+
+    const testData: Array<[Node, Node | undefined | null, Node[]]> = [
+        [node1, undefined, []],
+        [node2, undefined, [node1]],
+        [node3, undefined, [node2, node1]],
+        [node1, null, []],
+        [node2, null, [node1]],
+        [node3, null, [node2, node1]],
+        [node1, node1, []],
+        [node2, node1, [node1]],
+        [node3, node1, [node2, node1]],
+        [node1, node2, []],
+        [node2, node2, []],
+        [node3, node2, [node2]],
+        [node1, node3, []],
+        [node2, node3, [node1]],
+        [node3, node3, []]
+    ]
+
+    testData.forEach(([node, rootNode, ancestors]) => {
+        test(`node: ${node.nodeName}; root: ${rootNode &&
+            rootNode.nodeName}`, () => {
+            expect(getAncestors(node, rootNode)).toStrictEqual(ancestors)
+        })
     })
 })
 

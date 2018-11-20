@@ -98,15 +98,31 @@ export function compareNodes(
  * @param root The optional root node.
  */
 export function getAncestorCount(node: Node, root: Node | null = null) {
-    let ancestorCount = 0
-    let currentNode: Node = node
+    return getAncestors(node, root).length
+}
 
-    while (currentNode.parentNode && currentNode !== root) {
-        currentNode = currentNode.parentNode
-        ancestorCount++
+/**
+ * Gets a list of `node`'s ancestor nodes up until and including `rootNode`.
+ * @param node Node whose ancestors to get.
+ * @param rootNode The root node.
+ */
+export function getAncestors(node: Node, rootNode: Node | null = null): Node[] {
+    if (!node || node === rootNode) {
+        return []
     }
 
-    return ancestorCount
+    const ancestors = []
+    let currentNode: Node | null = node.parentNode
+
+    while (currentNode) {
+        ancestors.push(currentNode)
+        if (currentNode === rootNode) {
+            break
+        }
+        currentNode = currentNode.parentNode
+    }
+
+    return ancestors
 }
 
 export function never(
