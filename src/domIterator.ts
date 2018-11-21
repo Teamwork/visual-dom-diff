@@ -1,7 +1,7 @@
 import { NodePredicate } from './util'
 
 export interface DomIteratorOptions {
-    skipSelfAndChildren?: NodePredicate
+    skipSelf?: NodePredicate
     skipChildren?: NodePredicate
 }
 
@@ -13,9 +13,10 @@ export class DomIterator implements IterableIterator<Node> {
         private rootNode: Node,
         private config?: DomIteratorOptions
     ) {
-        this.nextNode = this.skipSelfAndChildren(this.rootNode)
-            ? null
-            : this.rootNode
+        this.nextNode = this.rootNode
+        if (this.skipSelf(this.nextNode)) {
+            this.next()
+        }
     }
 
     public [Symbol.iterator](): IterableIterator<Node> {
@@ -47,25 +48,22 @@ export class DomIterator implements IterableIterator<Node> {
             this.next() // Skip this node, as we've visited it already.
         }
 
-        if (this.nextNode && this.skipSelfAndChildren(this.nextNode)) {
+        if (this.nextNode && this.skipSelf(this.nextNode)) {
             this.next() // Skip this node, as directed by the config.
         }
 
         return { done, value }
     }
 
-    private skipSelfAndChildren(node: Node): boolean {
-        return this.config && this.config.skipSelfAndChildren
-            ? this.config.skipSelfAndChildren(node)
+    private skipSelf(node: Node): boolean {
+        return this.config && this.config.skipSelf
+            ? this.config.skipSelf(node)
             : false
     }
 
     private skipChildren(node: Node): boolean {
-        return (
-            this.skipSelfAndChildren(node) ||
-            (this.config && this.config.skipChildren
-                ? this.config.skipChildren(node)
-                : false)
-        )
+        return this.config && this.config.skipChildren
+            ? this.config.skipChildren(node)
+            : false
     }
 }

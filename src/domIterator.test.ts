@@ -49,15 +49,29 @@ test('iterate many nodes', () => {
     ])
 })
 
-test('skip certain nodes', () => {
+test('skip some nodes', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipSelfAndChildren: node => node.nodeName === 'TR'
+            skipSelf: node => node.nodeName === 'TR'
         })
-    ]).toStrictEqual([fragment, table, img1, img2, img3])
+    ]).toStrictEqual([
+        fragment,
+        table,
+        td1a,
+        text1a,
+        td1b,
+        text1b,
+        td2a,
+        text2a,
+        td2b,
+        text2b,
+        img1,
+        img2,
+        img3
+    ])
 })
 
-test('skip child nodes of certain nodes', () => {
+test('skip children of some nodes', () => {
     expect([
         ...new DomIterator(fragment, {
             skipChildren: node => node.nodeName === 'TR'
@@ -65,20 +79,53 @@ test('skip child nodes of certain nodes', () => {
     ]).toStrictEqual([fragment, table, tr1, tr2, img1, img2, img3])
 })
 
+test('skip some nodes and their children', () => {
+    expect([
+        ...new DomIterator(fragment, {
+            skipChildren: node => node.nodeName === 'TR',
+            skipSelf: node => node.nodeName === 'TR'
+        })
+    ]).toStrictEqual([fragment, table, img1, img2, img3])
+})
+
 test('skip the root node', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipSelfAndChildren: node => node === fragment
+            skipSelf: node => node === fragment
         })
-    ]).toStrictEqual([])
+    ]).toStrictEqual([
+        table,
+        tr1,
+        td1a,
+        text1a,
+        td1b,
+        text1b,
+        tr2,
+        td2a,
+        text2a,
+        td2b,
+        text2b,
+        img1,
+        img2,
+        img3
+    ])
 })
 
-test('skip child nodes of the root node', () => {
+test('skip the children of the root node', () => {
     expect([
         ...new DomIterator(fragment, {
             skipChildren: node => node === fragment
         })
     ]).toStrictEqual([fragment])
+})
+
+test('skip the root node and its children', () => {
+    expect([
+        ...new DomIterator(fragment, {
+            skipChildren: node => node === fragment,
+            skipSelf: node => node === fragment
+        })
+    ]).toStrictEqual([])
 })
 
 test('stay within root', () => {

@@ -8,15 +8,13 @@ import {
 } from './util'
 
 export interface Options {
-    skipSelfAndChildren?: IndefiniteNodePredicate
     skipChildren?: IndefiniteNodePredicate
-    isFormat?: IndefiniteNodePredicate
+    skipSelf?: IndefiniteNodePredicate
 }
 
 export interface Config extends Options, DomIteratorOptions {
-    readonly skipSelfAndChildren: NodePredicate
     readonly skipChildren: NodePredicate
-    readonly isFormat: NodePredicate
+    readonly skipSelf: NodePredicate
 }
 
 const skipChildrenMap = new Set()
@@ -26,65 +24,63 @@ skipChildrenMap.add('IFRAME')
 skipChildrenMap.add('OBJECT')
 skipChildrenMap.add('SVG')
 
-const formatNames = new Set()
-formatNames.add('BDO')
-formatNames.add('BDI')
-formatNames.add('Q')
-formatNames.add('CITE')
-formatNames.add('CODE')
-formatNames.add('DATA')
-formatNames.add('TIME')
-formatNames.add('VAR')
-formatNames.add('DFN')
-formatNames.add('ABBR')
-formatNames.add('STRONG')
-formatNames.add('EM')
-formatNames.add('BIG')
-formatNames.add('SMALL')
-formatNames.add('MARK')
-formatNames.add('SUB')
-formatNames.add('SUP')
-formatNames.add('SAMP')
-formatNames.add('KBD')
-formatNames.add('B')
-formatNames.add('I')
-formatNames.add('S')
-formatNames.add('U')
-formatNames.add('SPAN')
+const skipSelfMap = new Set()
+skipSelfMap.add('BDO')
+skipSelfMap.add('BDI')
+skipSelfMap.add('Q')
+skipSelfMap.add('CITE')
+skipSelfMap.add('CODE')
+skipSelfMap.add('DATA')
+skipSelfMap.add('TIME')
+skipSelfMap.add('VAR')
+skipSelfMap.add('DFN')
+skipSelfMap.add('ABBR')
+skipSelfMap.add('STRONG')
+skipSelfMap.add('EM')
+skipSelfMap.add('BIG')
+skipSelfMap.add('SMALL')
+skipSelfMap.add('MARK')
+skipSelfMap.add('SUB')
+skipSelfMap.add('SUP')
+skipSelfMap.add('SAMP')
+skipSelfMap.add('KBD')
+skipSelfMap.add('B')
+skipSelfMap.add('I')
+skipSelfMap.add('S')
+skipSelfMap.add('U')
+skipSelfMap.add('SPAN')
 
 export function optionsToConfig({
-    isFormat,
     skipChildren,
-    skipSelfAndChildren
+    skipSelf
 }: Options = {}): Config {
     return {
-        isFormat(node: Node): boolean {
-            if (isFormat) {
-                const result = isFormat(node)
-                if (typeof result === 'boolean') {
-                    return result
-                }
-            }
-            return formatNames.has(node.nodeName)
-        },
         skipChildren(node: Node): boolean {
+            if (!isElement(node) && !isDocumentFragment(node)) {
+                return true
+            }
+
             if (skipChildren) {
                 const result = skipChildren(node)
                 if (typeof result === 'boolean') {
                     return result
                 }
             }
+
             return skipChildrenMap.has(node.nodeName)
         },
-        skipSelfAndChildren(node: Node): boolean {
-            if (
-                !isText(node) &&
-                !isElement(node) &&
-                !isDocumentFragment(node)
-            ) {
+        skipSelf(node: Node): boolean {
+            if (!isText(node) && !isElement(node)) {
                 return true
             }
-            return (skipSelfAndChildren && skipSelfAndChildren(node)) || false
+
+            if (skipSelf) {
+                const result = skipSelf(node)
+                if (typeof result === 'boolean') {
+                    return result
+                }
+            }
+            return skipSelfMap.has(node.nodeName)
         }
     }
 }

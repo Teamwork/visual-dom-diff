@@ -1,78 +1,33 @@
 import { optionsToConfig } from './config'
-import { isComment } from './util'
+import { isComment, isDocumentFragment, isText } from './util'
 
 const text = document.createTextNode('text')
 const span = document.createElement('SPAN')
+const div = document.createElement('DIV')
 const video = document.createElement('VIDEO')
 const comment = document.createComment('comment')
 const fragment = document.createDocumentFragment()
 
-describe('skipSelfAndChildren', () => {
-    describe('without options', () => {
-        const config = optionsToConfig()
-        test('return false given a text node', () => {
-            expect(config.skipSelfAndChildren(text)).toBe(false)
-        })
-        test('return false given a SPAN', () => {
-            expect(config.skipSelfAndChildren(span)).toBe(false)
-        })
-        test('return false given a document fragment', () => {
-            expect(config.skipSelfAndChildren(fragment)).toBe(false)
-        })
-        test('return true given a comment', () => {
-            expect(config.skipSelfAndChildren(comment)).toBe(true)
-        })
-        test('return false given a VIDEO', () => {
-            expect(config.skipSelfAndChildren(video)).toBe(false)
-        })
-        test('return true given a document', () => {
-            expect(config.skipSelfAndChildren(document)).toBe(true)
-        })
-    })
-    describe('with options', () => {
-        const config = optionsToConfig({
-            skipSelfAndChildren(node: Node): boolean | undefined {
-                return isComment(node)
-                    ? false // Comment should be ignored anyway.
-                    : node.nodeName === 'SPAN'
-                    ? true // SPAN should be ignored.
-                    : node.nodeName === 'VIDEO'
-                    ? undefined // VIDEO should not be ignored.
-                    : false // Some nodes will be ignored anyway.
-            }
-        })
-        test('return false given a text node', () => {
-            expect(config.skipSelfAndChildren(text)).toBe(false)
-        })
-        test('return true given a SPAN', () => {
-            expect(config.skipSelfAndChildren(span)).toBe(true)
-        })
-        test('return false given a document fragment', () => {
-            expect(config.skipSelfAndChildren(fragment)).toBe(false)
-        })
-        test('return true given a comment', () => {
-            expect(config.skipSelfAndChildren(comment)).toBe(true)
-        })
-        test('return false given a VIDEO', () => {
-            expect(config.skipSelfAndChildren(video)).toBe(false)
-        })
-        test('return true given a document', () => {
-            expect(config.skipSelfAndChildren(document)).toBe(true)
-        })
-    })
-})
-
 describe('skipChildren', () => {
     describe('without options', () => {
         const config = optionsToConfig()
-        test('return false given a text node', () => {
-            expect(config.skipChildren(text)).toBe(false)
+        test('return true given a text node', () => {
+            expect(config.skipChildren(text)).toBe(true)
+        })
+        test('return true given a comment node', () => {
+            expect(config.skipChildren(comment)).toBe(true)
         })
         test('return false given a SPAN', () => {
             expect(config.skipChildren(span)).toBe(false)
         })
         test('return true given a VIDEO', () => {
             expect(config.skipChildren(video)).toBe(true)
+        })
+        test('return false given a DIV', () => {
+            expect(config.skipChildren(div)).toBe(false)
+        })
+        test('return false given a document fragment', () => {
+            expect(config.skipChildren(fragment)).toBe(false)
         })
     })
     describe('with options', () => {
@@ -82,52 +37,89 @@ describe('skipChildren', () => {
                     ? true
                     : node.nodeName === 'VIDEO'
                     ? false
+                    : isText(node) || isComment(node)
+                    ? false
+                    : isDocumentFragment(node)
+                    ? true
                     : undefined
             }
         })
-        test('return false given a text node', () => {
-            expect(config.skipChildren(text)).toBe(false)
+        test('return true given a text node', () => {
+            expect(config.skipChildren(text)).toBe(true)
         })
-        test('return false given a SPAN', () => {
+        test('return true given a comment node', () => {
+            expect(config.skipChildren(comment)).toBe(true)
+        })
+        test('return true given a SPAN', () => {
             expect(config.skipChildren(span)).toBe(true)
         })
-        test('return true given a VIDEO', () => {
+        test('return false given a VIDEO', () => {
             expect(config.skipChildren(video)).toBe(false)
+        })
+        test('return false given a DIV', () => {
+            expect(config.skipChildren(div)).toBe(false)
+        })
+        test('return true given a document fragment', () => {
+            expect(config.skipChildren(fragment)).toBe(true)
         })
     })
 })
 
-describe('isFormat', () => {
+describe('skipSelf', () => {
     describe('without options', () => {
         const config = optionsToConfig()
         test('return false given a text node', () => {
-            expect(config.isFormat(text)).toBe(false)
+            expect(config.skipSelf(text)).toBe(false)
+        })
+        test('return true given a comment node', () => {
+            expect(config.skipSelf(comment)).toBe(true)
         })
         test('return true given a SPAN', () => {
-            expect(config.isFormat(span)).toBe(true)
+            expect(config.skipSelf(span)).toBe(true)
         })
         test('return false given a VIDEO', () => {
-            expect(config.isFormat(video)).toBe(false)
+            expect(config.skipSelf(video)).toBe(false)
+        })
+        test('return false given a DIV', () => {
+            expect(config.skipSelf(div)).toBe(false)
+        })
+        test('return true given a document fragment', () => {
+            expect(config.skipSelf(fragment)).toBe(true)
         })
     })
-    describe('without options', () => {
+    describe('with options', () => {
         const config = optionsToConfig({
-            isFormat(node: Node): boolean | undefined {
-                return node.nodeName === 'SPAN'
+            skipSelf(node: Node): boolean | undefined {
+                return isText(node)
+                    ? true
+                    : isComment(node)
+                    ? false
+                    : isDocumentFragment(node)
+                    ? false
+                    : node.nodeName === 'SPAN'
                     ? false
                     : node.nodeName === 'VIDEO'
                     ? true
                     : undefined
             }
         })
-        test('return false given a text node', () => {
-            expect(config.isFormat(text)).toBe(false)
+        test('return true given a text node', () => {
+            expect(config.skipSelf(text)).toBe(true)
         })
-        test('return true given a SPAN', () => {
-            expect(config.isFormat(span)).toBe(false)
+        test('return true given a comment node', () => {
+            expect(config.skipSelf(comment)).toBe(true)
         })
-        test('return false given a VIDEO', () => {
-            expect(config.isFormat(video)).toBe(true)
+        test('return false given a SPAN', () => {
+            expect(config.skipSelf(span)).toBe(false)
+        })
+        test('return true given a VIDEO', () => {
+            expect(config.skipSelf(video)).toBe(true)
+        })
+        test('return false given a DIV', () => {
+            expect(config.skipSelf(div)).toBe(false)
+        })
+        test('return true given a document fragment', () => {
+            expect(config.skipSelf(fragment)).toBe(true)
         })
     })
 })
