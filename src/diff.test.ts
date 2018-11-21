@@ -19,9 +19,9 @@ function htmlToFragment(html: string): DocumentFragment {
     return template.content
 }
 
-// function trimLines(text: string): string {
-//     return text.replace(/(^|\n)\s*/g, '')
-// }
+function trimLines(text: string): string {
+    return text.replace(/(^|\n)\s*/g, '')
+}
 
 test.each([
     [
@@ -106,49 +106,48 @@ test.each([
         document.createElement('IMG'),
         '<img>',
         undefined
+    ],
+    [
+        'complex identical content',
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p><a href="#">Paragraph 1</a></p>
+                    <p><a>Paragraph 2</a></p>
+                    <img src="image.jpg">
+                    <img src="image.png">
+                    More text
+                    <video><source></video>
+                </div>
+                <div></div>
+                `)
+        ),
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p><a href="#">Paragraph 1</a></p>
+                    <p><a>Paragraph 2</a></p>
+                    <img src="image.jpg">
+                    <img src="image.png">
+                    More text
+                    <video><source></video>
+                </div>
+                <div></div>
+                `)
+        ),
+        trimLines(`
+            <div>
+                <p><a href="#">Paragraph 1</a></p>
+                <p><a>Paragraph 2</a></p>
+                <img src="image.jpg">
+                <img src="image.png">
+                More text
+                <video></video>
+            </div>
+            <div></div>
+            `),
+        undefined
     ]
-    // ,
-    // [
-    //     'complex identical content',
-    //     htmlToFragment(
-    //         trimLines(`
-    //             <div>
-    //                 <p><strong>Paragraph 1</strong></p>
-    //                 <p><strong><em>Paragraph 2</em></strong></p>
-    //                 <img src="image.jpg">
-    //                 <img src="image.png">
-    //                 More text
-    //                 <video></video>
-    //             </div>
-    //             <div></div>
-    //             `)
-    //     ),
-    //     htmlToFragment(
-    //         trimLines(`
-    //             <div>
-    //                 <p><strong>Paragraph 1</strong></p>
-    //                 <p><strong><em>Paragraph 2</em></strong></p>
-    //                 <img src="image.jpg">
-    //                 <img src="image.png">
-    //                 More text
-    //                 <video></video>
-    //             </div>
-    //             <div></div>
-    //             `)
-    //     ),
-    //     trimLines(`
-    //         <div>
-    //             <p><strong>Paragraph 1</strong></p>
-    //             <p><strong><em>Paragraph 2</em></strong></p>
-    //             <img src="image.jpg">
-    //             <img src="image.png">
-    //             More text
-    //             <video></video>
-    //         </div>
-    //         <div></div>
-    //         `),
-    //     undefined
-    // ]
 ])(
     '%s',
     (
