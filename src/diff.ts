@@ -17,7 +17,7 @@ export function visualDomDiff(
     options: Options = {}
 ): DocumentFragment {
     const config = optionsToConfig(options)
-    const { skipSelf } = config
+    const { addedClass, removedClass, skipSelf } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
         getAncestors(node, rootNode).filter(notSkipSelf).length
@@ -36,33 +36,89 @@ export function visualDomDiff(
     let oldOffset = 0
     let newOffset = 0
 
-    const outputRootNode = document.createDocumentFragment()
-    let outputNode: Node = outputRootNode
-    let outputDepth = 0
-    // let addedDepth = -1
-    // let removedDepth = -1
-    // let modifiedDepth = -1
+    const rootOutputNode = document.createDocumentFragment()
+    let oldOutputNode: Node = rootOutputNode
+    let oldOutputDepth = 0
+    let newOutputNode: Node = rootOutputNode
+    let newOutputDepth = 0
+    let removedNode: Node | null = null
+    let addedNode: Node | null = null
+    const removedNodes = new Array<Node>()
+    const addedNodes = new Array<Node>()
 
-    function appendChild(node: Node, depth: number): void {
-        // Make sure we append the new child to the correct parent node.
-        while (outputDepth > depth) {
+    function prepareOldOutput(): void {
+        const depth = getDepth(oldNode, oldRootNode)
+        while (oldOutputDepth > depth) {
             /* istanbul ignore if */
-            if (!outputNode.parentNode) {
+            if (!oldOutputNode.parentNode) {
                 return never()
             }
-            outputNode = outputNode.parentNode
-            outputDepth--
+            if (oldOutputNode === removedNode) {
+                removedNode = null
+            }
+            oldOutputNode = oldOutputNode.parentNode
+            oldOutputDepth--
         }
 
         /* istanbul ignore if */
-        if (outputDepth !== depth) {
+        if (oldOutputDepth !== depth) {
+            return never()
+        }
+    }
+
+    function prepareNewOutput(): void {
+        const depth = getDepth(newNode, newRootNode)
+        while (newOutputDepth > depth) {
+            /* istanbul ignore if */
+            if (!newOutputNode.parentNode) {
+                return never()
+            }
+            if (newOutputNode === addedNode) {
+                addedNode = null
+            }
+            newOutputNode = newOutputNode.parentNode
+            newOutputDepth--
+        }
+
+        /* istanbul ignore if */
+        if (newOutputDepth !== depth) {
+            return never()
+        }
+    }
+
+    function appendChild(node: Node): void {
+        /* istanbul ignore if */
+        if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
             return never()
         }
 
-        // Append the child node.
-        outputNode.appendChild(node)
-        outputNode = node
-        outputDepth++
+        oldOutputNode.appendChild(node)
+        oldOutputNode = node
+        newOutputNode = node
+        oldOutputDepth++
+        newOutputDepth++
+    }
+
+    function appendOldChild(node: Node): void {
+        if (!removedNode) {
+            removedNode = node
+            removedNodes.push(node)
+        }
+
+        oldOutputNode.appendChild(node)
+        oldOutputNode = node
+        oldOutputDepth++
+    }
+
+    function appendNewChild(node: Node): void {
+        if (!addedNode) {
+            addedNode = node
+            addedNodes.push(node)
+        }
+
+        newOutputNode.appendChild(node)
+        newOutputNode = node
+        newOutputDepth++
     }
 
     function nextDiff(step: number): void {
@@ -71,8 +127,11 @@ export function visualDomDiff(
         if (diffOffset === length) {
             ;({ done: diffDone, value: diffItem } = diffIterator.next())
             diffOffset = 0
-        } else if (diffOffset > length) {
-            return never()
+        } else {
+            /* istanbul ignore if */
+            if (diffOffset > length) {
+                return never()
+            }
         }
     }
 
@@ -82,8 +141,11 @@ export function visualDomDiff(
         if (oldOffset === length) {
             ;({ done: oldDone, value: oldNode } = oldIterator.next())
             oldOffset = 0
-        } else if (oldOffset > length) {
-            return never()
+        } else {
+            /* istanbul ignore if */
+            if (oldOffset > length) {
+                return never()
+            }
         }
     }
 
@@ -93,54 +155,129 @@ export function visualDomDiff(
         if (newOffset === length) {
             ;({ done: newDone, value: newNode } = newIterator.next())
             newOffset = 0
-        } else if (newOffset > length) {
-            return never()
+        } else {
+            /* istanbul ignore if */
+            if (newOffset > length) {
+                return never()
+            }
         }
     }
 
+    // Copy all content from oldRootNode and newRootNode to rootOutputNode,
+    // while deduplicating identical content.
+    // Difference markers and formatting are excluded at this stage.
     while (!diffDone) {
         if (diffItem.value.length === 0) {
             nextDiff(0)
-        } else if (diffItem.added) {
-            if (newDone) {
-                return never()
-            }
-            // TODO
         } else if (diffItem.removed) {
+            /* istanbul ignore if */
             if (oldDone) {
                 return never()
             }
-            // TODO
+
+            prepareOldOutput()
+        } else if (diffItem.added) {
+            /* istanbul ignore if */
+            if (newDone) {
+                return never()
+            }
+
+            prepareNewOutput()
         } else {
+            /* istanbul ignore if */
             if (oldDone || newDone) {
                 return never()
             }
+
+            prepareOldOutput()
+            prepareNewOutput()
+
+            const length = Math.min(
+                diffItem.value.length - diffOffset,
+                getLength(oldNode) - oldOffset,
+                getLength(newNode) - newOffset
+            )
+            const text = diffItem.value.substring(
+                diffOffset,
+                diffOffset + length
+            )
+
             if (isText(oldNode) && isText(newNode)) {
-                const length = Math.min(
-                    diffItem.value.length - diffOffset,
-                    oldNode.length - oldOffset,
-                    newNode.length - newOffset
-                )
-                const node = document.createTextNode(
-                    diffItem.value.substring(diffOffset, diffOffset + length)
-                )
-                appendChild(node, getDepth(newNode, newRootNode))
-                nextDiff(length)
-                nextOld(length)
-                nextNew(length)
+                if (oldOutputNode === newOutputNode) {
+                    appendChild(document.createTextNode(text))
+                } else {
+                    appendOldChild(document.createTextNode(text))
+                    appendNewChild(document.createTextNode(text))
+                }
             } else if (compareNodes(oldNode, newNode)) {
-                appendChild(
-                    newNode.cloneNode(false),
-                    getDepth(newNode, newRootNode)
-                )
-                nextDiff(1)
-                nextOld(1)
-                nextNew(1)
+                if (oldOutputNode === newOutputNode) {
+                    appendChild(newNode.cloneNode(false))
+                } else {
+                    appendOldChild(oldNode.cloneNode(false))
+                    appendNewChild(newNode.cloneNode(false))
+                }
             } else {
-                // TODO
+                appendOldChild(
+                    isText(oldNode)
+                        ? document.createTextNode(text)
+                        : oldNode.cloneNode(false)
+                )
+                appendNewChild(
+                    isText(newNode)
+                        ? document.createTextNode(text)
+                        : newNode.cloneNode(false)
+                )
             }
+
+            nextDiff(length)
+            nextOld(length)
+            nextNew(length)
         }
     }
 
-    return outputRootNode
+    // Mark up the content which has been removed.
+    for (removedNode of removedNodes) {
+        const parentNode = removedNode.parentNode as Node
+        let previousSibling = removedNode.previousSibling
+
+        // Move the delete before an insert.
+        while (previousSibling && addedNodes.includes(previousSibling)) {
+            parentNode.insertBefore(removedNode, previousSibling)
+            previousSibling = removedNode.previousSibling
+        }
+
+        if (
+            previousSibling &&
+            previousSibling.lastChild &&
+            removedNodes.includes(previousSibling.lastChild)
+        ) {
+            previousSibling.appendChild(removedNode)
+        } else {
+            const marker = document.createElement('DEL')
+            marker.classList.add(removedClass)
+            parentNode.insertBefore(marker, removedNode)
+            marker.appendChild(removedNode)
+        }
+    }
+
+    // Mark up the content which has been added.
+    for (addedNode of addedNodes) {
+        const parentNode = addedNode.parentNode as Node
+        const previousSibling = addedNode.previousSibling
+
+        if (
+            previousSibling &&
+            previousSibling.lastChild &&
+            addedNodes.includes(previousSibling.lastChild)
+        ) {
+            previousSibling.appendChild(addedNode)
+        } else {
+            const marker = document.createElement('INS')
+            marker.classList.add(addedClass)
+            parentNode.insertBefore(marker, addedNode)
+            marker.appendChild(addedNode)
+        }
+    }
+
+    return rootOutputNode
 }

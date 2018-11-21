@@ -10,11 +10,17 @@ import {
 export interface Options {
     skipChildren?: IndefiniteNodePredicate
     skipSelf?: IndefiniteNodePredicate
+    addedClass?: string
+    modifiedClass?: string
+    removedClass?: string
 }
 
 export interface Config extends Options, DomIteratorOptions {
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
+    readonly addedClass: string
+    readonly modifiedClass: string
+    readonly removedClass: string
 }
 
 const skipChildrenMap = new Set()
@@ -52,9 +58,15 @@ skipSelfMap.add('SPAN')
 
 export function optionsToConfig({
     skipChildren,
-    skipSelf
+    skipSelf,
+    addedClass = 'vdd-added',
+    modifiedClass = 'vdd-modified',
+    removedClass = 'vdd-removed'
 }: Options = {}): Config {
     return {
+        addedClass,
+        modifiedClass,
+        removedClass,
         skipChildren(node: Node): boolean {
             if (!isElement(node) && !isDocumentFragment(node)) {
                 return true

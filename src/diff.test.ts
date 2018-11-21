@@ -147,6 +147,35 @@ test.each([
             <div></div>
             `),
         undefined
+    ],
+    [
+        'same structure but different nodes',
+        htmlToFragment('Prefix <ul><li>Test</li></ul> Suffix'),
+        htmlToFragment('Prefix <ol><li>Test</li></ol> Suffix'),
+        'Prefix <del class="vdd-removed"><ul><li>Test</li></ul></del><ins class="vdd-added"><ol><li>Test</li></ol></ins> Suffix',
+        undefined
+    ],
+    [
+        'a \\0 character replaces a paragraph',
+        (() => {
+            const p = document.createElement('P')
+            p.textContent = 'Test'
+            return p
+        })(),
+        document.createTextNode('\0Test'),
+        '<del class="vdd-removed"><p>Test</p></del><ins class="vdd-added">\0Test</ins>',
+        undefined
+    ],
+    [
+        'paragraph replaces a \\0 character',
+        document.createTextNode('\0Test'),
+        (() => {
+            const p = document.createElement('P')
+            p.textContent = 'Test'
+            return p
+        })(),
+        '<del class="vdd-removed">\0Test</del><ins class="vdd-added"><p>Test</p></ins>',
+        undefined
     ]
 ])(
     '%s',
