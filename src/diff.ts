@@ -1,7 +1,14 @@
 import { diffWords } from 'diff'
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
-import { compareNodes, getAncestors, isText, never } from './util'
+import {
+    compareArrays,
+    compareNodes,
+    getAncestors,
+    isElement,
+    isText,
+    never
+} from './util'
 
 const serialize = (root: Node, config: Config): string =>
     [...new DomIterator(root, config)].reduce(
@@ -16,12 +23,18 @@ export function visualDomDiff(
     newRootNode: Node,
     options: Options = {}
 ): DocumentFragment {
+    // Define config and simple helpers.
     const config = optionsToConfig(options)
-    const { addedClass, removedClass, skipSelf } = config
+    const { addedClass, modifiedClass, removedClass, skipSelf } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
         getAncestors(node, rootNode).filter(notSkipSelf).length
+    const isFormattingNode = (node: Node): boolean =>
+        isElement(node) && skipSelf(node)
+    const getFormattingAncestors = (node: Node, rootNode: Node): Node[] =>
+        getAncestors(node, rootNode).filter(isFormattingNode)
 
+    // Input iterators.
     const diffIterator = diffWords(
         serialize(oldRootNode, config),
         serialize(newRootNode, config)
@@ -29,6 +42,7 @@ export function visualDomDiff(
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)
 
+    // Input variables produced by the input iterators.
     let { done: diffDone, value: diffItem } = diffIterator.next()
     let { done: oldDone, value: oldNode } = oldIterator.next()
     let { done: newDone, value: newNode } = newIterator.next()
@@ -36,6 +50,7 @@ export function visualDomDiff(
     let oldOffset = 0
     let newOffset = 0
 
+    // Output variables.
     const rootOutputNode = document.createDocumentFragment()
     let oldOutputNode: Node = rootOutputNode
     let oldOutputDepth = 0
@@ -45,6 +60,7 @@ export function visualDomDiff(
     let addedNode: Node | null = null
     const removedNodes = new Array<Node>()
     const addedNodes = new Array<Node>()
+    const modifiedFormattingNodes = new Array<Node>()
 
     function prepareOldOutput(): void {
         const depth = getDepth(oldNode, oldRootNode)
@@ -242,6 +258,15 @@ export function visualDomDiff(
             if (isText(oldNode) && isText(newNode)) {
                 if (oldOutputNode === newOutputNode) {
                     appendChild(document.createTextNode(text))
+                    if (
+                        !compareArrays(
+                            getFormattingAncestors(oldNode, oldRootNode),
+                            getFormattingAncestors(newNode, newRootNode),
+                            compareNodes
+                        )
+                    ) {
+                        modifiedFormattingNodes.push(oldOutputNode)
+                    }
                 } else {
                     appendOldChild(document.createTextNode(text))
                     appendNewChild(document.createTextNode(text))
@@ -277,7 +302,7 @@ export function visualDomDiff(
         const parentNode = removedNode.parentNode as Node
         let previousSibling = removedNode.previousSibling
 
-        // Move the delete before an insert.
+        // Move the delete before inserts.
         while (previousSibling && addedNodes.includes(previousSibling)) {
             parentNode.insertBefore(removedNode, previousSibling)
             previousSibling = removedNode.previousSibling
@@ -313,6 +338,25 @@ export function visualDomDiff(
             marker.classList.add(addedClass)
             parentNode.insertBefore(marker, addedNode)
             marker.appendChild(addedNode)
+        }
+    }
+
+    // Mark up the content with modified formatting.
+    for (const modifiedFormattingNode of modifiedFormattingNodes) {
+        const parentNode = modifiedFormattingNode.parentNode as Node
+        const previousSibling = modifiedFormattingNode.previousSibling
+
+        if (
+            previousSibling &&
+            previousSibling.lastChild &&
+            modifiedFormattingNodes.includes(previousSibling.lastChild)
+        ) {
+            previousSibling.appendChild(modifiedFormattingNode)
+        } else {
+            const marker = document.createElement('INS')
+            marker.classList.add(modifiedClass)
+            parentNode.insertBefore(marker, modifiedFormattingNode)
+            marker.appendChild(modifiedFormattingNode)
         }
     }
 

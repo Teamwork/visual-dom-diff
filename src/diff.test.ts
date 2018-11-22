@@ -204,6 +204,13 @@ test.each([
         htmlToFragment('Prefix <p>Paragraph</p> Suffix'),
         'Prefix <del class="vdd-removed">Paragraph</del><ins class="vdd-added"><p>Paragraph</p></ins> Suffix',
         undefined
+    ],
+    [
+        'formatting removed',
+        htmlToFragment('Prefix <strong>Strong</strong><em>Em</em> Suffix'),
+        htmlToFragment('Prefix StrongEm Suffix'),
+        'Prefix <ins class="vdd-modified">StrongEm</ins> Suffix',
+        undefined
     ]
 ])(
     '%s',
