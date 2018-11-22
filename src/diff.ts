@@ -176,6 +176,24 @@ export function visualDomDiff(
             }
 
             prepareOldOutput()
+
+            const length = Math.min(
+                diffItem.value.length - diffOffset,
+                getLength(oldNode) - oldOffset
+            )
+            const text = diffItem.value.substring(
+                diffOffset,
+                diffOffset + length
+            )
+
+            appendOldChild(
+                isText(oldNode)
+                    ? document.createTextNode(text)
+                    : oldNode.cloneNode(false)
+            )
+
+            nextDiff(length)
+            nextOld(length)
         } else if (diffItem.added) {
             /* istanbul ignore if */
             if (newDone) {
@@ -183,6 +201,25 @@ export function visualDomDiff(
             }
 
             prepareNewOutput()
+
+            const length = Math.min(
+                diffItem.value.length - diffOffset,
+                getLength(oldNode) - oldOffset,
+                getLength(newNode) - newOffset
+            )
+            const text = diffItem.value.substring(
+                diffOffset,
+                diffOffset + length
+            )
+
+            appendNewChild(
+                isText(newNode)
+                    ? document.createTextNode(text)
+                    : newNode.cloneNode(false)
+            )
+
+            nextDiff(length)
+            nextNew(length)
         } else {
             /* istanbul ignore if */
             if (oldDone || newDone) {

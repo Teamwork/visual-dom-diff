@@ -176,6 +176,34 @@ test.each([
         })(),
         '<del class="vdd-removed">\0Test</del><ins class="vdd-added"><p>Test</p></ins>',
         undefined
+    ],
+    [
+        'some content removed',
+        htmlToFragment('Prefix Removed <p>Paragraph</p> Suffix'),
+        htmlToFragment('Prefix Suffix'),
+        'Prefix <del class="vdd-removed">Removed <p>Paragraph</p> </del>Suffix',
+        undefined
+    ],
+    [
+        'some content added',
+        htmlToFragment('Prefix Suffix'),
+        htmlToFragment('Prefix Added <p>Paragraph</p> Suffix'),
+        'Prefix <ins class="vdd-added">Added <p>Paragraph</p> </ins>Suffix',
+        undefined
+    ],
+    [
+        'some content unwrapped',
+        htmlToFragment('Prefix <p>Paragraph</p> Suffix'),
+        htmlToFragment('Prefix Paragraph Suffix'),
+        'Prefix <del class="vdd-removed"><p>Paragraph</p></del><ins class="vdd-added">Paragraph</ins> Suffix',
+        undefined
+    ],
+    [
+        'some content wrapped',
+        htmlToFragment('Prefix Paragraph Suffix'),
+        htmlToFragment('Prefix <p>Paragraph</p> Suffix'),
+        'Prefix <del class="vdd-removed">Paragraph</del><ins class="vdd-added"><p>Paragraph</p></ins> Suffix',
+        undefined
     ]
 ])(
     '%s',
