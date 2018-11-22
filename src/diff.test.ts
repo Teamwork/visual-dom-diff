@@ -120,7 +120,7 @@ test.each([
                     <video><source></video>
                 </div>
                 <div></div>
-                `)
+            `)
         ),
         htmlToFragment(
             trimLines(`
@@ -133,7 +133,7 @@ test.each([
                     <video><source></video>
                 </div>
                 <div></div>
-                `)
+            `)
         ),
         trimLines(`
             <div>
@@ -145,7 +145,7 @@ test.each([
                 <video></video>
             </div>
             <div></div>
-            `),
+        `),
         undefined
     ],
     [
@@ -210,6 +210,84 @@ test.each([
         htmlToFragment('Prefix <strong>Strong</strong><em>Em</em> Suffix'),
         htmlToFragment('Prefix StrongEm Suffix'),
         'Prefix <ins class="vdd-modified">StrongEm</ins> Suffix',
+        undefined
+    ],
+    [
+        'formatting added',
+        htmlToFragment('Prefix StrongEm Suffix'),
+        htmlToFragment('Prefix <strong>Strong</strong><em>Em</em> Suffix'),
+        'Prefix <ins class="vdd-modified"><strong>Strong</strong><em>Em</em></ins> Suffix',
+        undefined
+    ],
+    [
+        'formatting modified',
+        htmlToFragment('Prefix <strong>formatted</strong> Suffix'),
+        htmlToFragment('Prefix <em>formatted</em> Suffix'),
+        'Prefix <ins class="vdd-modified"><em>formatted</em></ins> Suffix',
+        undefined
+    ],
+    [
+        'nested formatting',
+        htmlToFragment('Prefix <strong><em>formatted</em></strong> Suffix'),
+        htmlToFragment('Prefix <strong><em>formatted</em></strong> Suffix'),
+        'Prefix <strong><em>formatted</em></strong> Suffix',
+        undefined
+    ],
+    [
+        '2 text nodes with modified formatting',
+        htmlToFragment('Prefix <strong><code>formatted</code></strong> Suffix'),
+        htmlToFragment(
+            'Prefix <strong><span style="color:red;">form<!-- force 2 text nodes -->atted</span></strong> Suffix'
+        ),
+        'Prefix <ins class="vdd-modified"><strong><span style="color:red;">formatted</span></strong></ins> Suffix',
+        undefined
+    ],
+    [
+        'nested text change',
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p>
+                        <strong><em>Prefix before Suffix</em></strong>
+                    </p>
+                </div>
+            `)
+        ),
+        htmlToFragment(
+            trimLines(`
+                <div>
+                    <p>
+                        <strong><em>Prefix after Suffix</em></strong>
+                    </p>
+                </div>
+            `)
+        ),
+        trimLines(`
+            <div>
+                <p>
+                    <strong><em>Prefix </em></strong>
+                    <del class="vdd-removed"><strong><em>before</em></strong></del>
+                    <ins class="vdd-added"><strong><em>after</em></strong></ins>
+                    <strong><em> Suffix</em></strong>
+                </p>
+            </div>
+        `),
+        undefined
+    ],
+    [
+        'formatting in differing content - the same text diff',
+        htmlToFragment('<ul><li><strong><em>text</em></strong></li></ul>'),
+        htmlToFragment('<ol><li><strong><code>text</code></strong></li></ol>'),
+        '<del class="vdd-removed"><ul><li><strong><em>text</em></strong></li></ul></del>' +
+            '<ins class="vdd-added"><ol><li><strong><code>text</code></strong></li></ol></ins>',
+        undefined
+    ],
+    [
+        'formatting in differing content - different text diff',
+        htmlToFragment('<ul><li><strong><em>before</em></strong></li></ul>'),
+        htmlToFragment('<ol><li><strong><code>after</code></strong></li></ol>'),
+        '<del class="vdd-removed"><ul><li><strong><em>before</em></strong></li></ul></del>' +
+            '<ins class="vdd-added"><ol><li><strong><code>after</code></strong></li></ol></ins>',
         undefined
     ]
 ])(

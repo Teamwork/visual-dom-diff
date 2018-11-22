@@ -32,7 +32,9 @@ export function visualDomDiff(
     const isFormattingNode = (node: Node): boolean =>
         isElement(node) && skipSelf(node)
     const getFormattingAncestors = (node: Node, rootNode: Node): Node[] =>
-        getAncestors(node, rootNode).filter(isFormattingNode)
+        getAncestors(node, rootNode)
+            .filter(isFormattingNode)
+            .reverse()
 
     // Input iterators.
     const diffIterator = diffWords(
@@ -61,6 +63,7 @@ export function visualDomDiff(
     const removedNodes = new Array<Node>()
     const addedNodes = new Array<Node>()
     const modifiedFormattingNodes = new Array<Node>()
+    const formattingMap = new Map<Node, Node[]>()
 
     function prepareOldOutput(): void {
         const depth = getDepth(oldNode, oldRootNode)
@@ -108,7 +111,16 @@ export function visualDomDiff(
             return never()
         }
 
-        oldOutputNode.appendChild(node)
+        if (isText(node)) {
+            const oldFormatting = getFormattingAncestors(oldNode, oldRootNode)
+            const newFormatting = getFormattingAncestors(newNode, newRootNode)
+            formattingMap.set(node, newFormatting)
+            if (!compareArrays(oldFormatting, newFormatting, compareNodes)) {
+                modifiedFormattingNodes.push(node)
+            }
+        }
+
+        newOutputNode.appendChild(node)
         oldOutputNode = node
         newOutputNode = node
         oldOutputDepth++
@@ -121,6 +133,11 @@ export function visualDomDiff(
             removedNodes.push(node)
         }
 
+        if (isText(node)) {
+            const oldFormatting = getFormattingAncestors(oldNode, oldRootNode)
+            formattingMap.set(node, oldFormatting)
+        }
+
         oldOutputNode.appendChild(node)
         oldOutputNode = node
         oldOutputDepth++
@@ -130,6 +147,11 @@ export function visualDomDiff(
         if (!addedNode) {
             addedNode = node
             addedNodes.push(node)
+        }
+
+        if (isText(node)) {
+            const newFormatting = getFormattingAncestors(newNode, newRootNode)
+            formattingMap.set(node, newFormatting)
         }
 
         newOutputNode.appendChild(node)
@@ -258,15 +280,6 @@ export function visualDomDiff(
             if (isText(oldNode) && isText(newNode)) {
                 if (oldOutputNode === newOutputNode) {
                     appendChild(document.createTextNode(text))
-                    if (
-                        !compareArrays(
-                            getFormattingAncestors(oldNode, oldRootNode),
-                            getFormattingAncestors(newNode, newRootNode),
-                            compareNodes
-                        )
-                    ) {
-                        modifiedFormattingNodes.push(oldOutputNode)
-                    }
                 } else {
                     appendOldChild(document.createTextNode(text))
                     appendNewChild(document.createTextNode(text))
@@ -357,6 +370,25 @@ export function visualDomDiff(
             marker.classList.add(modifiedClass)
             parentNode.insertBefore(marker, modifiedFormattingNode)
             marker.appendChild(modifiedFormattingNode)
+        }
+    }
+
+    // Add formatting.
+    for (const [textNode, formattingNodes] of formattingMap) {
+        for (const formattingNode of formattingNodes) {
+            const parentNode = textNode.parentNode as Node
+            const previousSibling = textNode.previousSibling
+
+            if (
+                previousSibling &&
+                compareNodes(previousSibling, formattingNode)
+            ) {
+                previousSibling.appendChild(textNode)
+            } else {
+                const clonedFormattingNode = formattingNode.cloneNode(false)
+                parentNode.insertBefore(clonedFormattingNode, textNode)
+                clonedFormattingNode.appendChild(textNode)
+            }
         }
     }
 
