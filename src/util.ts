@@ -93,15 +93,6 @@ export function compareNodes(
 }
 
 /**
- * Returns the number of ancestors of `node`.
- * @param node The node whose ancestors should be counted.
- * @param root The optional root node.
- */
-export function getAncestorCount(node: Node, root: Node | null = null) {
-    return getAncestors(node, root).length
-}
-
-/**
  * Gets a list of `node`'s ancestor nodes up until and including `rootNode`.
  * @param node Node whose ancestors to get.
  * @param rootNode The root node.

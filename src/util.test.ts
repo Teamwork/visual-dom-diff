@@ -1,7 +1,6 @@
 import {
     compareArrays,
     compareNodes,
-    getAncestorCount,
     getAncestors,
     isComment,
     isDocumentFragment,
@@ -187,82 +186,6 @@ describe('compareNodes', () => {
                 compareNodes(rootNode.cloneNode(true), differentRootNode, true)
             ).toBe(false)
         })
-    })
-})
-
-describe('getAncestorCount', () => {
-    const d = document.createElement('DIV')
-    const p = document.createElement('P')
-    const u = document.createElement('U')
-    const t = document.createElement('text')
-
-    d.appendChild(p)
-    p.appendChild(u)
-    u.appendChild(t)
-
-    test('node: text, root: null', () => {
-        expect(getAncestorCount(t)).toBe(3)
-    })
-    test('node: U, root: null', () => {
-        expect(getAncestorCount(u)).toBe(2)
-    })
-    test('node: P, root: null', () => {
-        expect(getAncestorCount(p)).toBe(1)
-    })
-    test('node: DIV, root: null', () => {
-        expect(getAncestorCount(d)).toBe(0)
-    })
-
-    test('node: text, root: DIV', () => {
-        expect(getAncestorCount(t, d)).toBe(3)
-    })
-    test('node: U, root: DIV', () => {
-        expect(getAncestorCount(u, d)).toBe(2)
-    })
-    test('node: P, root: DIV', () => {
-        expect(getAncestorCount(p, d)).toBe(1)
-    })
-    test('node: DIV, root: DIV', () => {
-        expect(getAncestorCount(d, d)).toBe(0)
-    })
-
-    test('node: text, root: P', () => {
-        expect(getAncestorCount(t, p)).toBe(2)
-    })
-    test('node: U, root: P', () => {
-        expect(getAncestorCount(u, p)).toBe(1)
-    })
-    test('node: P, root: P', () => {
-        expect(getAncestorCount(p, p)).toBe(0)
-    })
-    test('node: DIV, root: P', () => {
-        expect(getAncestorCount(d, p)).toBe(0)
-    })
-
-    test('node: text, root: U', () => {
-        expect(getAncestorCount(t, u)).toBe(1)
-    })
-    test('node: U, root: U', () => {
-        expect(getAncestorCount(u, u)).toBe(0)
-    })
-    test('node: P, root: U', () => {
-        expect(getAncestorCount(p, u)).toBe(1)
-    })
-    test('node: DIV, root: U', () => {
-        expect(getAncestorCount(d, u)).toBe(0)
-    })
-
-    test('node: text, root: text', () => {
-        expect(getAncestorCount(t, t)).toBe(0)
-    })
-    test('node: U, root: text', () => {
-        expect(getAncestorCount(u, t)).toBe(2)
-    })
-    test('node: P, root: text', () => {
-        expect(getAncestorCount(p, t)).toBe(1)
-    })
-    test('node: DIV, root: text', () => {
-        expect(getAncestorCount(d, t)).toBe(0)
     })
 })
 
