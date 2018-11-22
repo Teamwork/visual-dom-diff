@@ -1,4 +1,4 @@
-import { diffWords } from 'diff'
+import { diffWordsWithSpace } from 'diff'
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
@@ -37,7 +37,7 @@ export function visualDomDiff(
             .reverse()
 
     // Input iterators.
-    const diffIterator = diffWords(
+    const diffIterator = diffWordsWithSpace(
         serialize(oldRootNode, config),
         serialize(newRootNode, config)
     )[Symbol.iterator]()

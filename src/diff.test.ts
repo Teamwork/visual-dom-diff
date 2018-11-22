@@ -289,6 +289,59 @@ test.each([
         '<del class="vdd-removed"><ul><li><strong><em>before</em></strong></li></ul></del>' +
             '<ins class="vdd-added"><ol><li><strong><code>after</code></strong></li></ol></ins>',
         undefined
+    ],
+    [
+        'differing image src',
+        htmlToFragment('<div><img src="image.png"></div>'),
+        htmlToFragment('<div><img src="image.jpg"></div>'),
+        '<div><del class="vdd-removed"><img src="image.png"></del><ins class="vdd-added"><img src="image.jpg"></ins></div>',
+        undefined
+    ],
+    [
+        'multiple spaces between words',
+        htmlToFragment('prefix  suffix'),
+        htmlToFragment('prefix   suffix'),
+        'prefix<del class="vdd-removed">  </del><ins class="vdd-added">   </ins>suffix',
+        undefined
+    ],
+    [
+        'custom skipChildren option',
+        htmlToFragment(
+            '<p>This content is skipped</p><video><source></video><div><img>Hello</div>'
+        ),
+        htmlToFragment(
+            '<p>Ignored too</p><video><source></video><div><img>Hello</div>'
+        ),
+        '<p></p><video><source></video><div><img>Hello</div>',
+        {
+            skipChildren(node: Node): boolean | undefined {
+                return node.nodeName === 'VIDEO'
+                    ? false
+                    : node.nodeName === 'P'
+                    ? true
+                    : undefined
+            }
+        }
+    ],
+    [
+        'custom skipSelf option',
+        htmlToFragment(
+            '<a><strong>p as formatting</strong></a> <strong>em as structure</strong>'
+        ),
+        htmlToFragment(
+            '<p><a>p as formatting</a></p> <em>em as structure</em>'
+        ),
+        '<a><ins class="vdd-modified"><p>p as formatting</p></ins></a> ' +
+            '<del class="vdd-removed"><strong>em as structure</strong></del><ins class="vdd-added"><em>em as structure</em></ins>',
+        {
+            skipSelf(node: Node): boolean | undefined {
+                return node.nodeName === 'EM'
+                    ? false
+                    : node.nodeName === 'P'
+                    ? true
+                    : undefined
+            }
+        }
     ]
 ])(
     '%s',
