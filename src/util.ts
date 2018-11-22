@@ -17,13 +17,23 @@ export function isComment(node: Node): node is Comment {
     return node.nodeType === Node.COMMENT_NODE
 }
 
-export function compareArrays<T>(array1: T[], array2: T[]): boolean {
+export type Comparator<T> = (item1: T, item2: T) => boolean
+
+export function strictEqual<T>(item1: T, item2: T): boolean {
+    return item1 === item2
+}
+
+export function compareArrays<T>(
+    array1: T[],
+    array2: T[],
+    comparator: Comparator<T> = strictEqual
+): boolean {
     if (array1.length !== array2.length) {
         return false
     }
 
     for (let i = 0, l = array1.length; i < l; ++i) {
-        if (array1[i] !== array2[i]) {
+        if (!comparator(array1[i], array2[i])) {
             return false
         }
     }
@@ -42,6 +52,10 @@ export function compareNodes(
     node2: Node,
     deep: boolean = false
 ): boolean {
+    if (node1 === node2) {
+        return true
+    }
+
     if (
         node1.nodeType !== node2.nodeType ||
         node1.nodeName !== node2.nodeName

@@ -98,22 +98,57 @@ describe('isComment', () => {
 })
 
 describe('compareArrays', () => {
-    test('empty arrays', () => {
-        expect(compareArrays([], [])).toBe(true)
+    describe('default comparator', () => {
+        test('empty arrays', () => {
+            expect(compareArrays([], [])).toBe(true)
+        })
+        test('different length', () => {
+            expect(compareArrays([1], [1, 2])).toBe(false)
+        })
+        test('different item types', () => {
+            expect(compareArrays([1, 2], [1, '2'])).toBe(false)
+        })
+        test('identical arrays', () => {
+            expect(compareArrays([1, '2', text], [1, '2', text])).toBe(true)
+        })
+        test('the same nodes', () => {
+            expect(compareArrays([text, text], [text, text])).toBe(true)
+        })
+        test('identical nodes', () => {
+            expect(compareArrays([text, text], [text, identicalText])).toBe(
+                false
+            )
+        })
+        test('different nodes', () => {
+            expect(compareArrays([text, text], [text, differentText])).toBe(
+                false
+            )
+        })
     })
-    test('different length', () => {
-        expect(compareArrays([1], [1, 2])).toBe(false)
-    })
-    test('different item types', () => {
-        expect(compareArrays([1, 2], [1, '2'])).toBe(false)
-    })
-    test('identical arrays', () => {
-        expect(compareArrays([1, '2', text], [1, '2', text])).toBe(true)
+    describe('node comparator', () => {
+        test('the same nodes', () => {
+            expect(
+                compareArrays([text, text], [text, text], compareNodes)
+            ).toBe(true)
+        })
+        test('identical nodes', () => {
+            expect(
+                compareArrays([text, text], [text, identicalText], compareNodes)
+            ).toBe(true)
+        })
+        test('different nodes', () => {
+            expect(
+                compareArrays([text, text], [text, differentText], compareNodes)
+            ).toBe(false)
+        })
     })
 })
 
 describe('compareNodes', () => {
     describe('shallow', () => {
+        test('the same node', () => {
+            expect(compareNodes(text, text)).toBe(true)
+        })
         test('different node types', () => {
             expect(compareNodes(text, span)).toBe(false)
         })
