@@ -25,7 +25,13 @@ export function visualDomDiff(
 ): DocumentFragment {
     // Define config and simple helpers.
     const config = optionsToConfig(options)
-    const { addedClass, modifiedClass, removedClass, skipSelf } = config
+    const {
+        addedClass,
+        ignoreCase,
+        modifiedClass,
+        removedClass,
+        skipSelf
+    } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
         getAncestors(node, rootNode).filter(notSkipSelf).length
@@ -39,7 +45,10 @@ export function visualDomDiff(
     // Input iterators.
     const diffIterator = diffWordsWithSpace(
         serialize(oldRootNode, config),
-        serialize(newRootNode, config)
+        serialize(newRootNode, config),
+        {
+            ignoreCase
+        }
     )[Symbol.iterator]()
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)

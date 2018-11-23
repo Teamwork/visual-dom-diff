@@ -356,10 +356,18 @@ test.each([
     ],
     [
         'change letter case',
-        htmlToFragment('Lowercase'),
-        htmlToFragment('lowercase'),
-        '<del class="vdd-removed">Lowercase</del><ins class="vdd-added">lowercase</ins>',
+        htmlToFragment('Lowercase Removed'),
+        htmlToFragment('lowercase Added'),
+        '<del class="vdd-removed">Lowercase</del><ins class="vdd-added">lowercase</ins> ' +
+            '<del class="vdd-removed">Removed</del><ins class="vdd-added">Added</ins>',
         undefined
+    ],
+    [
+        'change letter case - case insensitive',
+        htmlToFragment('Lowercase Removed'),
+        htmlToFragment('lowercase Added'),
+        'lowercase <del class="vdd-removed">Removed</del><ins class="vdd-added">Added</ins>',
+        { ignoreCase: true }
     ]
 ])(
     '%s',

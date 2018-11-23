@@ -123,3 +123,25 @@ describe('skipSelf', () => {
         })
     })
 })
+
+describe('simple options', () => {
+    test('default', () => {
+        const config = optionsToConfig()
+        expect(config.addedClass).toBe('vdd-added')
+        expect(config.ignoreCase).toBe(false)
+        expect(config.modifiedClass).toBe('vdd-modified')
+        expect(config.removedClass).toBe('vdd-removed')
+    })
+    test('override', () => {
+        const config = optionsToConfig({
+            addedClass: 'ADDED',
+            ignoreCase: true,
+            modifiedClass: 'MODIFIED',
+            removedClass: 'REMOVED'
+        })
+        expect(config.addedClass).toBe('ADDED')
+        expect(config.ignoreCase).toBe(true)
+        expect(config.modifiedClass).toBe('MODIFIED')
+        expect(config.removedClass).toBe('REMOVED')
+    })
+})

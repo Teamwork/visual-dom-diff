@@ -8,19 +8,21 @@ import {
 } from './util'
 
 export interface Options {
-    skipChildren?: IndefiniteNodePredicate
-    skipSelf?: IndefiniteNodePredicate
     addedClass?: string
+    ignoreCase?: boolean
     modifiedClass?: string
     removedClass?: string
+    skipChildren?: IndefiniteNodePredicate
+    skipSelf?: IndefiniteNodePredicate
 }
 
 export interface Config extends Options, DomIteratorOptions {
-    readonly skipChildren: NodePredicate
-    readonly skipSelf: NodePredicate
     readonly addedClass: string
+    readonly ignoreCase: boolean
     readonly modifiedClass: string
     readonly removedClass: string
+    readonly skipChildren: NodePredicate
+    readonly skipSelf: NodePredicate
 }
 
 const skipChildrenMap = new Set()
@@ -57,14 +59,16 @@ skipSelfMap.add('U')
 skipSelfMap.add('SPAN')
 
 export function optionsToConfig({
-    skipChildren,
-    skipSelf,
     addedClass = 'vdd-added',
+    ignoreCase = false,
     modifiedClass = 'vdd-modified',
-    removedClass = 'vdd-removed'
+    removedClass = 'vdd-removed',
+    skipChildren,
+    skipSelf
 }: Options = {}): Config {
     return {
         addedClass,
+        ignoreCase,
         modifiedClass,
         removedClass,
         skipChildren(node: Node): boolean {
