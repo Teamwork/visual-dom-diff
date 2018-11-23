@@ -342,6 +342,24 @@ test.each([
                     : undefined
             }
         }
+    ],
+    [
+        'custom class names',
+        htmlToFragment('<strong>Modified</strong> Removed'),
+        htmlToFragment('Modified Added'),
+        '<ins class="MODIFIED">Modified</ins> <del class="REMOVED">Removed</del><ins class="ADDED">Added</ins>',
+        {
+            addedClass: 'ADDED',
+            modifiedClass: 'MODIFIED',
+            removedClass: 'REMOVED'
+        }
+    ],
+    [
+        'change letter case',
+        htmlToFragment('Lowercase'),
+        htmlToFragment('lowercase'),
+        '<del class="vdd-removed">Lowercase</del><ins class="vdd-added">lowercase</ins>',
+        undefined
     ]
 ])(
     '%s',
