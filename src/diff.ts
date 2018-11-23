@@ -18,6 +18,7 @@ const serialize = (root: Node, config: Config): string =>
 
 const getLength = (node: Node): number => (isText(node) ? node.length : 1)
 
+export { Options }
 export function visualDomDiff(
     oldRootNode: Node,
     newRootNode: Node,
