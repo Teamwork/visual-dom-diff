@@ -1,0 +1,31 @@
+body {
+	margin: 0;
+    word-wrap: break-word;
+}
+
+textarea {
+    display: block;
+    padding: 0;
+    resize: vertical;
+    min-height: 10rem;
+}
+
+.row {
+	display: flex;
+    flex: 1 0 0;
+	flex-direction: row;
+    box-sizing: border-box;
+    min-height: 0.1rem;
+}
+
+.column {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+	box-sizing: border-box;
+    min-width: 0.1rem;
+}
+
+.margin {
+    margin: 0.25rem;
+}

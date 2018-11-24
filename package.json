@@ -13,6 +13,7 @@
     "tslint": "tslint --project .",
     "tsc": "tsc --build .",
     "test": "jest",
+    "demo": "webpack -p && google-chrome demo/index.html",
     "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test"
   },
   "repository": {
@@ -44,7 +45,9 @@
     "ts-jest": "^23.10.4",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",
-    "typescript": "^3.1.6"
+    "typescript": "^3.1.6",
+    "webpack": "^4.26.0",
+    "webpack-cli": "^3.1.2"
   },
   "dependencies": {
     "@types/diff": "^3.5.2",
