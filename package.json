@@ -13,8 +13,9 @@
     "tslint": "tslint --project .",
     "tsc": "tsc --build .",
     "test": "jest",
-    "demo": "npm run build && webpack -p && google-chrome demo/index.html",
-    "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test"
+    "demo": "webpack -p",
+    "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test && npm run demo",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
