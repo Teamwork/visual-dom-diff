@@ -1,9 +1,9 @@
-import { diffWordsWithSpace } from 'diff'
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
     compareArrays,
     compareNodes,
+    diffText,
     getAncestors,
     isElement,
     isText,
@@ -44,12 +44,10 @@ export function visualDomDiff(
             .reverse()
 
     // Input iterators.
-    const diffIterator = diffWordsWithSpace(
+    const diffIterator = diffText(
         serialize(oldRootNode, config),
         serialize(newRootNode, config),
-        {
-            ignoreCase
-        }
+        { ignoreCase }
     )[Symbol.iterator]()
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)
@@ -215,9 +213,7 @@ export function visualDomDiff(
     // while deduplicating identical content.
     // Difference markers and formatting are excluded at this stage.
     while (!diffDone) {
-        if (diffItem.value.length === 0) {
-            nextDiff(0)
-        } else if (diffItem.removed) {
+        if (diffItem.removed) {
             /* istanbul ignore if */
             if (oldDone) {
                 return never()

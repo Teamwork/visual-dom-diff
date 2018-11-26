@@ -6,8 +6,10 @@ import {
     isDocumentFragment,
     isElement,
     isText,
-    never
+    never,
+    diffText
 } from './util'
+import { IDiffResult } from 'diff'
 
 const text = document.createTextNode('text')
 const identicalText = document.createTextNode('text')
@@ -266,5 +268,87 @@ describe('never', () => {
     })
     test('custom message', () => {
         expect(() => never('Custom message')).toThrowError('Custom message')
+    })
+})
+
+describe('diffText', () => {
+    const result = (
+        added: boolean,
+        removed: boolean,
+        value: string
+    ): IDiffResult => ({ count: undefined, added, removed, value })
+
+    test('empty inputs', () => {
+        expect(diffText('', '')).toStrictEqual([])
+    })
+    test('identical inputs', () => {
+        expect(diffText('test', 'test')).toStrictEqual([
+            result(false, false, 'test')
+        ])
+    })
+    test('different letter case', () => {
+        expect(diffText('test', 'Test')).toStrictEqual([
+            result(false, true, 'test'),
+            result(true, false, 'Test')
+        ])
+    })
+    test('different letter case with ignoreCase option', () => {
+        expect(diffText('test', 'Test', { ignoreCase: true })).toStrictEqual([
+            result(false, false, 'Test')
+        ])
+    })
+    test('different whitespace', () => {
+        expect(diffText('start  end', 'start     end')).toStrictEqual([
+            result(false, false, 'start'),
+            result(false, true, '  '),
+            result(true, false, '     '),
+            result(false, false, 'end')
+        ])
+    })
+    test('word added', () => {
+        expect(diffText('start end', 'start add end')).toStrictEqual([
+            result(false, false, 'start '),
+            result(true, false, 'add '),
+            result(false, false, 'end')
+        ])
+    })
+    test('word removed', () => {
+        expect(diffText('start remove end', 'start end')).toStrictEqual([
+            result(false, false, 'start '),
+            result(false, true, 'remove '),
+            result(false, false, 'end')
+        ])
+    })
+    test('word replaced', () => {
+        expect(diffText('start remove end', 'start add end')).toStrictEqual([
+            result(false, false, 'start '),
+            result(false, true, 'remove'),
+            result(true, false, 'add'),
+            result(false, false, ' end')
+        ])
+    })
+    test('word added with \\0', () => {
+        expect(diffText('\0start\0end', '\0start\0add\0end')).toStrictEqual([
+            result(false, false, '\0start'),
+            result(true, false, '\0add'),
+            result(false, false, '\0end')
+        ])
+    })
+    test('word removed with \\0', () => {
+        expect(diffText('\0start\0remove\0end', '\0start\0end')).toStrictEqual([
+            result(false, false, '\0start'),
+            result(false, true, '\0remove'),
+            result(false, false, '\0end')
+        ])
+    })
+    test('word replaced with \\0', () => {
+        expect(
+            diffText('\0start\0remove\0end', '\0start\0add\0end')
+        ).toStrictEqual([
+            result(false, false, '\0start\0'),
+            result(false, true, 'remove'),
+            result(true, false, 'add'),
+            result(false, false, '\0end')
+        ])
     })
 })

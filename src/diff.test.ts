@@ -390,6 +390,20 @@ test.each([
         htmlToFragment('lowercase Added'),
         'lowercase <del class="vdd-removed">Removed</del><ins class="vdd-added">Added</ins>',
         { ignoreCase: true }
+    ],
+    [
+        'remove paragraph',
+        htmlToFragment('<p>Removed</p><p>Common</p>'),
+        htmlToFragment('<p>Common</p>'),
+        '<del class="vdd-removed"><p>Removed</p></del><p>Common</p>',
+        undefined
+    ],
+    [
+        'add paragraph',
+        htmlToFragment('<p>Common</p>'),
+        htmlToFragment('<p>Added</p><p>Common</p>'),
+        '<ins class="vdd-added"><p>Added</p></ins><p>Common</p>',
+        undefined
     ]
 ])(
     '%s',

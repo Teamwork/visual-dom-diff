@@ -1,3 +1,5 @@
+import { diffWordsWithSpace, IDiffResult, IOptions } from 'diff'
+
 export type NodePredicate = (node: Node) => boolean
 export type IndefiniteNodePredicate = (node: Node) => boolean | undefined
 
@@ -134,4 +136,51 @@ export function never(
     message: string = 'visual-dom-diff: Should never happen'
 ): never {
     throw new Error(message)
+}
+
+function endsWithNull(text: string): boolean {
+    return text.length > 0 && text[text.length - 1] === '\0'
+}
+
+/**
+ * Delegates the call to `diff.diffWordsWithSpace` and fixes the result, so that trailing `\0` characters
+ * in the "added" and "removed" diff result items are moved to the front, if possible, which is necessary
+ * to improve the quality of the DOM diffs.
+ * Additionally, the "count" properties are set to undefined and empty diff items are removed.
+ */
+export function diffText(
+    text1: string,
+    text2: string,
+    options?: IOptions
+): IDiffResult[] {
+    const results = diffWordsWithSpace(text1, text2, options)
+
+    for (let i = 0, l = results.length - 2; i < l; ++i) {
+        const result0 = results[i]
+        const result1 = results[i + 1]
+        const result2 = results[i + 2]
+
+        if (
+            !(result0.added || result0.removed) &&
+            (result1.added || result1.removed) &&
+            !(result2.added || result2.removed)
+        ) {
+            while (endsWithNull(result0.value) && endsWithNull(result1.value)) {
+                result0.value = result0.value.substring(
+                    0,
+                    result0.value.length - 1
+                )
+                result1.value =
+                    '\0' + result1.value.substring(0, result1.value.length - 1)
+                result2.value = '\0' + result2.value
+            }
+        }
+    }
+
+    return results.filter(result => {
+        result.count = undefined
+        result.added = !!result.added
+        result.removed = !!result.removed
+        return result.value.length > 0
+    })
 }
