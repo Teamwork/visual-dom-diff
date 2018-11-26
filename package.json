@@ -13,7 +13,7 @@
     "tslint": "tslint --project .",
     "tsc": "tsc --build .",
     "test": "jest",
-    "demo": "webpack -p && google-chrome demo/index.html",
+    "demo": "npm run build && webpack -p && google-chrome demo/index.html",
     "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test"
   },
   "repository": {
