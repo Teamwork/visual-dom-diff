@@ -53,6 +53,13 @@ test.each([
         undefined
     ],
     [
+        'different text nodes',
+        document.createTextNode('Prefix Old Suffix'),
+        document.createTextNode('Prefix New Suffix'),
+        'Prefix <del class="vdd-removed">Old</del><ins class="vdd-added">New</ins> Suffix',
+        undefined
+    ],
+    [
         'identical text in a DIV',
         (() => {
             const div = document.createElement('DIV')
@@ -105,6 +112,21 @@ test.each([
         document.createElement('IMG'),
         document.createElement('IMG'),
         '<img>',
+        undefined
+    ],
+    [
+        'different images',
+        (() => {
+            const img = document.createElement('IMG')
+            img.setAttribute('src', 'image.png')
+            return img
+        })(),
+        (() => {
+            const img = document.createElement('IMG')
+            img.setAttribute('src', 'image.jpg')
+            return img
+        })(),
+        '<del class="vdd-removed"><img src="image.png"></del><ins class="vdd-added"><img src="image.jpg"></ins>',
         undefined
     ],
     [
