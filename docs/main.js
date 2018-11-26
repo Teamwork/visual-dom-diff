@@ -8,6 +8,12 @@ window.addEventListener('load', () => {
     const input2 = document.getElementById('input2')
     const outputHtml = document.getElementById('output-html')
     const output = document.getElementById('output')
+    const updateInput1 = () => {
+        input1.firstChild.innerHTML = input1Html.value
+    }
+    const updateInput2 = () => {
+        input2.firstChild.innerHTML = input2Html.value
+    }
     const updateDiff = () => {
         output.innerHTML = ''
         output.appendChild(
@@ -19,15 +25,17 @@ window.addEventListener('load', () => {
     }
 
     input1Html.addEventListener('input', () => {
-        input1.firstChild.innerHTML = input1Html.value
+        updateInput1()
         updateDiff()
     })
     input2Html.addEventListener('input', () => {
-        input2.firstChild.innerHTML = input2Html.value
+        updateInput2()
         updateDiff()
     })
     ignoreCaseCheckbox.addEventListener('change', () => {
         updateDiff()
     })
+    updateInput1()
+    updateInput2()
     updateDiff()
 })

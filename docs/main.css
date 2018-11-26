@@ -5,6 +5,10 @@ textarea {
     min-height: 10rem;
 }
 
+img {
+    max-width: 100%;
+}
+
 .row {
 	display: flex;
     flex: 1 0 0;
@@ -45,11 +49,20 @@ textarea {
 .vdd-added {
     background: lightgreen;
 }
+.vdd-added > img {
+    border: 0.125em solid lightgreen;
+}
 
 .vdd-modified {
     background: lightskyblue;
 }
+.vdd-modified > img {
+    border: 0.125em solid lightskyblue;
+}
 
 .vdd-removed {
     background: lightcoral;
+}
+.vdd-removed > img {
+    border: 0.125em solid lightcoral;
 }
