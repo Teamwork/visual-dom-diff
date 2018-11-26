@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
     const updateDiff = () => {
         output.innerHTML = ''
         output.appendChild(
-            visualDomDiff(input1, input2, {
+            visualDomDiff(input1.firstChild, input2.firstChild, {
                 ignoreCase: ignoreCaseCheckbox.checked
             })
         )
@@ -19,14 +19,15 @@ window.addEventListener('load', () => {
     }
 
     input1Html.addEventListener('input', () => {
-        input1.innerHTML = input1Html.value
+        input1.firstChild.innerHTML = input1Html.value
         updateDiff()
     })
     input2Html.addEventListener('input', () => {
-        input2.innerHTML = input2Html.value
+        input2.firstChild.innerHTML = input2Html.value
         updateDiff()
     })
     ignoreCaseCheckbox.addEventListener('change', () => {
         updateDiff()
     })
+    updateDiff()
 })

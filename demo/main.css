@@ -29,3 +29,28 @@ textarea {
 .margin {
     margin: 0.25rem;
 }
+
+.vdd-added,
+.vdd-modified,
+.vdd-removed {
+    text-decoration: none;
+}
+
+.vdd-added > *,
+.vdd-modified > *,
+.vdd-removed > * {
+    text-decoration: none;
+    background-color: inherit;
+}
+
+.vdd-added {
+    background: lightgreen;
+}
+
+.vdd-modified {
+    background: lightskyblue;
+}
+
+.vdd-removed {
+    background: lightcoral;
+}
