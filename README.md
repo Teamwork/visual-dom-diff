@@ -11,7 +11,7 @@ npm i visual-dom-diff
 ## Usage
 
 ```javascript
-import { visualDomDiff } from 'visualDomDiff'
+import { visualDomDiff } from 'visual-dom-diff'
 
 const diffNode = visualDomDiff(originalNode, changedNode, options)
 ```
