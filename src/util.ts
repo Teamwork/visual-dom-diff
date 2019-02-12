@@ -25,7 +25,7 @@ export function strictEqual<T>(item1: T, item2: T): boolean {
     return item1 === item2
 }
 
-export function compareArrays<T>(
+export function areArraysEqual<T>(
     array1: T[],
     array2: T[],
     comparator: Comparator<T> = strictEqual
@@ -76,7 +76,7 @@ export function areNodesEqual(
             .getAttributeNames()
             .sort()
 
-        if (!compareArrays(attributeNames1, attributeNames2)) {
+        if (!areArraysEqual(attributeNames1, attributeNames2)) {
             return false
         }
 

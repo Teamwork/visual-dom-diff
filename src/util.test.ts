@@ -1,6 +1,6 @@
 import { Change } from 'diff'
 import {
-    compareArrays,
+    areArraysEqual,
     areNodesEqual,
     diffText,
     getAncestors,
@@ -99,30 +99,30 @@ describe('isComment', () => {
     })
 })
 
-describe('compareArrays', () => {
+describe('areArraysEqual', () => {
     describe('default comparator', () => {
         test('empty arrays', () => {
-            expect(compareArrays([], [])).toBe(true)
+            expect(areArraysEqual([], [])).toBe(true)
         })
         test('different length', () => {
-            expect(compareArrays([1], [1, 2])).toBe(false)
+            expect(areArraysEqual([1], [1, 2])).toBe(false)
         })
         test('different item types', () => {
-            expect(compareArrays([1, 2], [1, '2'])).toBe(false)
+            expect(areArraysEqual([1, 2], [1, '2'])).toBe(false)
         })
         test('identical arrays', () => {
-            expect(compareArrays([1, '2', text], [1, '2', text])).toBe(true)
+            expect(areArraysEqual([1, '2', text], [1, '2', text])).toBe(true)
         })
         test('the same nodes', () => {
-            expect(compareArrays([text, text], [text, text])).toBe(true)
+            expect(areArraysEqual([text, text], [text, text])).toBe(true)
         })
         test('identical nodes', () => {
-            expect(compareArrays([text, text], [text, identicalText])).toBe(
+            expect(areArraysEqual([text, text], [text, identicalText])).toBe(
                 false
             )
         })
         test('different nodes', () => {
-            expect(compareArrays([text, text], [text, differentText])).toBe(
+            expect(areArraysEqual([text, text], [text, differentText])).toBe(
                 false
             )
         })
@@ -130,12 +130,12 @@ describe('compareArrays', () => {
     describe('node comparator', () => {
         test('the same nodes', () => {
             expect(
-                compareArrays([text, text], [text, text], areNodesEqual)
+                areArraysEqual([text, text], [text, text], areNodesEqual)
             ).toBe(true)
         })
         test('identical nodes', () => {
             expect(
-                compareArrays(
+                areArraysEqual(
                     [text, text],
                     [text, identicalText],
                     areNodesEqual
@@ -144,7 +144,7 @@ describe('compareArrays', () => {
         })
         test('different nodes', () => {
             expect(
-                compareArrays(
+                areArraysEqual(
                     [text, text],
                     [text, differentText],
                     areNodesEqual

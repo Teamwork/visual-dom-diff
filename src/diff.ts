@@ -1,8 +1,8 @@
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
+    areArraysEqual,
     areNodesEqual,
-    compareArrays,
     diffText,
     getAncestors,
     isElement,
@@ -123,7 +123,7 @@ export function visualDomDiff(
             const oldFormatting = getFormattingAncestors(oldNode, oldRootNode)
             const newFormatting = getFormattingAncestors(newNode, newRootNode)
             formattingMap.set(node, newFormatting)
-            if (!compareArrays(oldFormatting, newFormatting, areNodesEqual)) {
+            if (!areArraysEqual(oldFormatting, newFormatting, areNodesEqual)) {
                 modifiedFormattingNodes.push(node)
             }
         }
