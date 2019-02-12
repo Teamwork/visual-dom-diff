@@ -1,15 +1,15 @@
+import { Change } from 'diff'
 import {
     compareArrays,
     compareNodes,
+    diffText,
     getAncestors,
     isComment,
     isDocumentFragment,
     isElement,
     isText,
-    never,
-    diffText
+    never
 } from './util'
-import { IDiffResult } from 'diff'
 
 const text = document.createTextNode('text')
 const identicalText = document.createTextNode('text')
@@ -276,7 +276,7 @@ describe('diffText', () => {
         added: boolean,
         removed: boolean,
         value: string
-    ): IDiffResult => ({ count: undefined, added, removed, value })
+    ): Change => ({ count: undefined, added, removed, value })
 
     test('empty inputs', () => {
         expect(diffText('', '')).toStrictEqual([])

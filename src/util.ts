@@ -1,4 +1,4 @@
-import { diffWordsWithSpace, IDiffResult, IOptions } from 'diff'
+import { Change, diffWordsWithSpace, WordsOptions } from 'diff'
 
 export type NodePredicate = (node: Node) => boolean
 export type IndefiniteNodePredicate = (node: Node) => boolean | undefined
@@ -151,8 +151,8 @@ function endsWithNull(text: string): boolean {
 export function diffText(
     text1: string,
     text2: string,
-    options?: IOptions
-): IDiffResult[] {
+    options?: WordsOptions
+): Change[] {
     const results = diffWordsWithSpace(text1, text2, options)
 
     for (let i = 0, l = results.length - 2; i < l; ++i) {
