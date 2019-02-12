@@ -14,8 +14,8 @@
     "tsc": "tsc --build .",
     "test": "jest",
     "demo": "webpack -p",
-    "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test && npm run demo",
-    "prepublish": "npm run build"
+    "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test",
+    "preversion": "npm run build && npm run demo && git add docs"
   },
   "repository": {
     "type": "git",

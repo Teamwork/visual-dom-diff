@@ -1,8 +1,10 @@
 import { Options } from './config'
-import { visualDomDiff } from './diff'
+import { CompareNodesResult, visualDomDiff } from './diff'
 import { areNodesEqual, isElement, isText } from './util'
 
 jest.setTimeout(2000)
+
+const headings = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6'])
 
 function fragmentToHtml(documentFragment: DocumentFragment): string {
     return Array.from(documentFragment.childNodes).reduce(
@@ -404,6 +406,56 @@ test.each([
         htmlToFragment('<p>Added</p><p>Common</p>'),
         '<ins class="vdd-added"><p>Added</p></ins><p>Common</p>',
         undefined
+    ],
+    [
+        'custom compareNodes option - ignore attributes',
+        htmlToFragment('<div><br><img src="image.jpg"></div>'),
+        htmlToFragment('<div><hr><img src="image.png"></div>'),
+        '<div><del class="vdd-removed"><br></del><ins class="vdd-added"><hr></ins>' +
+            '<ins class="vdd-modified"><img src="image.png"></ins></div>',
+        {
+            compareNodes(node1: Node, node2: Node) {
+                return areNodesEqual(node1, node2)
+                    ? CompareNodesResult.IDENTICAL
+                    : node1.nodeName === node2.nodeName
+                    ? CompareNodesResult.SIMILAR
+                    : CompareNodesResult.DIFFERENT
+            }
+        }
+    ],
+    [
+        'custom compareNodes option - UL similar to OL',
+        htmlToFragment('<div><ol><li>Item</li><li>One</li></ol></div>'),
+        htmlToFragment('<div><ul><li>Item</li><li>Two</li></ul></div>'),
+        '<div><ins class="vdd-modified"><ul><li>Item</li>' +
+            '<li><del class="vdd-removed">One</del><ins class="vdd-added">Two</ins></li></ul></ins></div>',
+        {
+            compareNodes(node1: Node, node2: Node) {
+                return (node1.nodeName === 'UL' && node2.nodeName === 'OL') ||
+                    (node1.nodeName === 'OL' && node2.nodeName === 'UL')
+                    ? CompareNodesResult.SIMILAR
+                    : undefined
+            }
+        }
+    ],
+    [
+        'custom compareNodes option - all headings are identical',
+        htmlToFragment(
+            '<h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3><h1>Different</h1>'
+        ),
+        htmlToFragment(
+            '<h4>Heading 1</h4><h5>Heading 2</h5><h6>Heading 3</h6><p>Different</p>'
+        ),
+        '<h4>Heading 1</h4><h5>Heading 2</h5><h6>Heading 3</h6>' +
+            '<del class="vdd-removed"><h1>Different</h1></del><ins class="vdd-added"><p>Different</p></ins>',
+        {
+            compareNodes(node1: Node, node2: Node) {
+                return headings.has(node1.nodeName) &&
+                    headings.has(node2.nodeName)
+                    ? CompareNodesResult.IDENTICAL
+                    : undefined
+            }
+        }
     ]
 ])(
     '%s',

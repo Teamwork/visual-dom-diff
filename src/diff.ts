@@ -1,7 +1,6 @@
-import { Config, Options, optionsToConfig } from './config'
+import { CompareNodesResult, Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
-    areArraysEqual,
     areNodesEqual,
     diffText,
     getAncestors,
@@ -18,7 +17,7 @@ const serialize = (root: Node, config: Config): string =>
 
 const getLength = (node: Node): number => (isText(node) ? node.length : 1)
 
-export { Options }
+export { CompareNodesResult, Options }
 export function visualDomDiff(
     oldRootNode: Node,
     newRootNode: Node,
@@ -31,7 +30,8 @@ export function visualDomDiff(
         ignoreCase,
         modifiedClass,
         removedClass,
-        skipSelf
+        skipSelf,
+        compareNodes
     } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
@@ -70,7 +70,7 @@ export function visualDomDiff(
     let addedNode: Node | null = null
     const removedNodes = new Array<Node>()
     const addedNodes = new Array<Node>()
-    const modifiedFormattingNodes = new Array<Node>()
+    const modifiedNodes = new Array<Node>()
     const formattingMap = new Map<Node, Node[]>()
 
     function prepareOldOutput(): void {
@@ -113,7 +113,9 @@ export function visualDomDiff(
         }
     }
 
-    function appendChild(node: Node): void {
+    function appendChild(node: Node, modified = false): void {
+        let nodeModified = modified
+
         /* istanbul ignore if */
         if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
             return never()
@@ -123,9 +125,25 @@ export function visualDomDiff(
             const oldFormatting = getFormattingAncestors(oldNode, oldRootNode)
             const newFormatting = getFormattingAncestors(newNode, newRootNode)
             formattingMap.set(node, newFormatting)
-            if (!areArraysEqual(oldFormatting, newFormatting, areNodesEqual)) {
-                modifiedFormattingNodes.push(node)
+
+            const length = oldFormatting.length
+            if (length !== newFormatting.length) {
+                nodeModified = true
+            } else {
+                for (let i = 0; i < length; ++i) {
+                    if (
+                        compareNodes(oldFormatting[i], newFormatting[i]) !==
+                        CompareNodesResult.IDENTICAL
+                    ) {
+                        nodeModified = true
+                        break
+                    }
+                }
             }
+        }
+
+        if (nodeModified) {
+            modifiedNodes.push(node)
         }
 
         newOutputNode.appendChild(node)
@@ -290,24 +308,30 @@ export function visualDomDiff(
                     appendOldChild(document.createTextNode(text))
                     appendNewChild(document.createTextNode(text))
                 }
-            } else if (areNodesEqual(oldNode, newNode)) {
-                if (oldOutputNode === newOutputNode) {
-                    appendChild(newNode.cloneNode(false))
-                } else {
-                    appendOldChild(oldNode.cloneNode(false))
-                    appendNewChild(newNode.cloneNode(false))
-                }
             } else {
-                appendOldChild(
-                    isText(oldNode)
-                        ? document.createTextNode(text)
-                        : oldNode.cloneNode(false)
-                )
-                appendNewChild(
-                    isText(newNode)
-                        ? document.createTextNode(text)
-                        : newNode.cloneNode(false)
-                )
+                const result = compareNodes(oldNode, newNode)
+                if (result !== CompareNodesResult.DIFFERENT) {
+                    if (oldOutputNode === newOutputNode) {
+                        appendChild(
+                            newNode.cloneNode(false),
+                            result !== CompareNodesResult.IDENTICAL
+                        )
+                    } else {
+                        appendOldChild(oldNode.cloneNode(false))
+                        appendNewChild(newNode.cloneNode(false))
+                    }
+                } else {
+                    appendOldChild(
+                        isText(oldNode)
+                            ? document.createTextNode(text)
+                            : oldNode.cloneNode(false)
+                    )
+                    appendNewChild(
+                        isText(newNode)
+                            ? document.createTextNode(text)
+                            : newNode.cloneNode(false)
+                    )
+                }
             }
 
             nextDiff(length)
@@ -360,22 +384,22 @@ export function visualDomDiff(
         }
     }
 
-    // Mark up the content with modified formatting.
-    for (const modifiedFormattingNode of modifiedFormattingNodes) {
-        const parentNode = modifiedFormattingNode.parentNode as Node
-        const previousSibling = modifiedFormattingNode.previousSibling
+    // Mark up the content which has been modified.
+    for (const modifiedNode of modifiedNodes) {
+        const parentNode = modifiedNode.parentNode as Node
+        const previousSibling = modifiedNode.previousSibling
 
         if (
             previousSibling &&
             previousSibling.lastChild &&
-            modifiedFormattingNodes.includes(previousSibling.lastChild)
+            modifiedNodes.includes(previousSibling.lastChild)
         ) {
-            previousSibling.appendChild(modifiedFormattingNode)
+            previousSibling.appendChild(modifiedNode)
         } else {
             const marker = document.createElement('INS')
             marker.classList.add(modifiedClass)
-            parentNode.insertBefore(marker, modifiedFormattingNode)
-            marker.appendChild(modifiedFormattingNode)
+            parentNode.insertBefore(marker, modifiedNode)
+            marker.appendChild(modifiedNode)
         }
     }
 
