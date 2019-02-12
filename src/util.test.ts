@@ -1,7 +1,7 @@
 import { Change } from 'diff'
 import {
     compareArrays,
-    compareNodes,
+    areNodesEqual,
     diffText,
     getAncestors,
     isComment,
@@ -130,59 +130,69 @@ describe('compareArrays', () => {
     describe('node comparator', () => {
         test('the same nodes', () => {
             expect(
-                compareArrays([text, text], [text, text], compareNodes)
+                compareArrays([text, text], [text, text], areNodesEqual)
             ).toBe(true)
         })
         test('identical nodes', () => {
             expect(
-                compareArrays([text, text], [text, identicalText], compareNodes)
+                compareArrays(
+                    [text, text],
+                    [text, identicalText],
+                    areNodesEqual
+                )
             ).toBe(true)
         })
         test('different nodes', () => {
             expect(
-                compareArrays([text, text], [text, differentText], compareNodes)
+                compareArrays(
+                    [text, text],
+                    [text, differentText],
+                    areNodesEqual
+                )
             ).toBe(false)
         })
     })
 })
 
-describe('compareNodes', () => {
+describe('areNodesEqual', () => {
     describe('shallow', () => {
         test('the same node', () => {
-            expect(compareNodes(text, text)).toBe(true)
+            expect(areNodesEqual(text, text)).toBe(true)
         })
         test('different node types', () => {
-            expect(compareNodes(text, span)).toBe(false)
+            expect(areNodesEqual(text, span)).toBe(false)
         })
         test('different node names', () => {
-            expect(compareNodes(video, span)).toBe(false)
+            expect(areNodesEqual(video, span)).toBe(false)
         })
         test('different comment nodes', () => {
-            expect(compareNodes(comment, differentComment)).toBe(false)
+            expect(areNodesEqual(comment, differentComment)).toBe(false)
         })
         test('identical comment nodes', () => {
-            expect(compareNodes(comment, identicalComment)).toBe(true)
+            expect(areNodesEqual(comment, identicalComment)).toBe(true)
         })
         test('different text nodes', () => {
-            expect(compareNodes(text, differentText)).toBe(false)
+            expect(areNodesEqual(text, differentText)).toBe(false)
         })
         test('identical text nodes', () => {
-            expect(compareNodes(text, identicalText)).toBe(true)
+            expect(areNodesEqual(text, identicalText)).toBe(true)
         })
         test('elements with different attribute names', () => {
-            expect(compareNodes(span, differentAttributeNamesSpan)).toBe(false)
+            expect(areNodesEqual(span, differentAttributeNamesSpan)).toBe(false)
         })
         test('elements with different attribute values', () => {
-            expect(compareNodes(span, differentAttributeValuesSpan)).toBe(false)
+            expect(areNodesEqual(span, differentAttributeValuesSpan)).toBe(
+                false
+            )
         })
         test('elements with different childNodes', () => {
-            expect(compareNodes(span, differentChildNodesSpan)).toBe(true)
+            expect(areNodesEqual(span, differentChildNodesSpan)).toBe(true)
         })
         test('identical elements', () => {
-            expect(compareNodes(span, identicalSpan)).toBe(true)
+            expect(areNodesEqual(span, identicalSpan)).toBe(true)
         })
         test('document fragments', () => {
-            expect(compareNodes(fragment, anotherFragment)).toBe(true)
+            expect(areNodesEqual(fragment, anotherFragment)).toBe(true)
         })
     })
     describe('deep', () => {
@@ -198,7 +208,7 @@ describe('compareNodes', () => {
 
         test('identical nodes', () => {
             expect(
-                compareNodes(
+                areNodesEqual(
                     rootNode.cloneNode(true),
                     rootNode.cloneNode(true),
                     true
@@ -212,7 +222,7 @@ describe('compareNodes', () => {
                 document.createTextNode('different')
             )
             expect(
-                compareNodes(rootNode.cloneNode(true), differentRootNode, true)
+                areNodesEqual(rootNode.cloneNode(true), differentRootNode, true)
             ).toBe(false)
         })
         test('child with a different attribute', () => {
@@ -220,7 +230,7 @@ describe('compareNodes', () => {
             ;((differentRootNode.lastChild as Node)
                 .lastChild as Element).setAttribute('data-a', 'a')
             expect(
-                compareNodes(rootNode.cloneNode(true), differentRootNode, true)
+                areNodesEqual(rootNode.cloneNode(true), differentRootNode, true)
             ).toBe(false)
         })
     })

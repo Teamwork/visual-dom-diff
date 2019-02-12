@@ -48,8 +48,9 @@ export function compareArrays<T>(
  * @param node1 The first node to compare.
  * @param node2 The second node to compare.
  * @param deep If true, the child nodes are compared recursively too.
+ * @returns `true`, if the 2 nodes are equal, otherwise `false`.
  */
-export function compareNodes(
+export function areNodesEqual(
     node1: Node,
     node2: Node,
     deep: boolean = false
@@ -99,7 +100,7 @@ export function compareNodes(
         }
 
         for (let i = 0, l = childNodes1.length; i < l; ++i) {
-            if (!compareNodes(childNodes1[i], childNodes2[i], deep)) {
+            if (!areNodesEqual(childNodes1[i], childNodes2[i], deep)) {
                 return false
             }
         }

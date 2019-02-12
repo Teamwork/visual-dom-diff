@@ -1,8 +1,8 @@
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
+    areNodesEqual,
     compareArrays,
-    compareNodes,
     diffText,
     getAncestors,
     isElement,
@@ -123,7 +123,7 @@ export function visualDomDiff(
             const oldFormatting = getFormattingAncestors(oldNode, oldRootNode)
             const newFormatting = getFormattingAncestors(newNode, newRootNode)
             formattingMap.set(node, newFormatting)
-            if (!compareArrays(oldFormatting, newFormatting, compareNodes)) {
+            if (!compareArrays(oldFormatting, newFormatting, areNodesEqual)) {
                 modifiedFormattingNodes.push(node)
             }
         }
@@ -290,7 +290,7 @@ export function visualDomDiff(
                     appendOldChild(document.createTextNode(text))
                     appendNewChild(document.createTextNode(text))
                 }
-            } else if (compareNodes(oldNode, newNode)) {
+            } else if (areNodesEqual(oldNode, newNode)) {
                 if (oldOutputNode === newOutputNode) {
                     appendChild(newNode.cloneNode(false))
                 } else {
@@ -387,7 +387,7 @@ export function visualDomDiff(
 
             if (
                 previousSibling &&
-                compareNodes(previousSibling, formattingNode)
+                areNodesEqual(previousSibling, formattingNode)
             ) {
                 previousSibling.appendChild(textNode)
             } else {

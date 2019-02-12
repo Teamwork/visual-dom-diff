@@ -1,6 +1,6 @@
 import { Options } from './config'
 import { visualDomDiff } from './diff'
-import { compareNodes, isElement, isText } from './util'
+import { areNodesEqual, isElement, isText } from './util'
 
 jest.setTimeout(2000)
 
@@ -419,7 +419,7 @@ test.each([
         const fragment = visualDomDiff(oldNode, newNode, options)
         expect(fragment).toBeInstanceOf(DocumentFragment)
         expect(fragmentToHtml(fragment)).toBe(expectedHtml)
-        expect(compareNodes(oldNode, oldClone, true)).toBe(true)
-        expect(compareNodes(newNode, newClone, true)).toBe(true)
+        expect(areNodesEqual(oldNode, oldClone, true)).toBe(true)
+        expect(areNodesEqual(newNode, newClone, true)).toBe(true)
     }
 )
