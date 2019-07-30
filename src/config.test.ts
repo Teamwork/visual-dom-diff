@@ -141,16 +141,20 @@ describe('compareNodes', () => {
     describe('without options', () => {
         const config = optionsToConfig()
 
-        test.each([[text], [span], [div], [video], [comment], [fragment]])(
-            'return IDENTICAL #%#',
-            node => {
-                expect(config.compareNodes(node, node.cloneNode(false))).toBe(
-                    CompareNodesResult.IDENTICAL
-                )
-            }
-        )
+        test.each<[HTMLElement | Comment | DocumentFragment]>([
+            [text],
+            [span],
+            [div],
+            [video],
+            [comment],
+            [fragment]
+        ])('return IDENTICAL #%#', node => {
+            expect(config.compareNodes(node, node.cloneNode(false))).toBe(
+                CompareNodesResult.IDENTICAL
+            )
+        })
 
-        test.each([
+        test.each<[Element | Comment, Element | Comment]>([
             [text, comment],
             [video, div],
             [text1, text2],

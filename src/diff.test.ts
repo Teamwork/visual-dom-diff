@@ -25,7 +25,7 @@ function trimLines(text: string): string {
     return text.replace(/(^|\n)\s*/g, '')
 }
 
-test.each([
+test.each<[string, Node, Node, string, Options | undefined]>([
     [
         'empty document fragments',
         document.createDocumentFragment(),
