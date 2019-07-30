@@ -6,7 +6,7 @@
     "lib": [ "es2018", "dom" ],
     "rootDir": "./src",
     "outDir": "./lib",
-    "composite": true,
+    "preserveConstEnums": true,
     "declaration": true,
     "importHelpers": true,
     "strict": true,
@@ -15,10 +15,5 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true
-  },
-  "exclude": [
-    "node_modules/",
-    "**/*.test.*",
-    "lib/"
-  ]
+  }
 }

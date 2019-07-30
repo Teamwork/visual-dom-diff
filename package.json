@@ -5,17 +5,20 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
-    "lib"
+    "/lib",
+    "!/lib/**/*.test.js",
+    "!/lib/**/*.test.d.ts"
   ],
   "scripts": {
     "clean": "rimraf lib",
     "prettier": "prettier --list-different 'src/**/*.{ts,tsx}'",
     "tslint": "tslint --project .",
-    "tsc": "tsc --build .",
+    "tsc": "tsc -b .",
     "test": "jest",
     "demo": "webpack -p",
     "build": "npm run clean && npm run prettier && npm run tslint && npm run tsc && npm test",
-    "preversion": "npm run build && npm run demo && git add docs"
+    "preversion": "npm outdated && npm run build && npm run demo && git add docs",
+    "postversion": "git push && git push origin v${npm_package_version}"
   },
   "repository": {
     "type": "git",
