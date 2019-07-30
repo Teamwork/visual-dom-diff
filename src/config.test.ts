@@ -29,6 +29,9 @@ describe('skipChildren', () => {
         test('return false given a document fragment', () => {
             expect(config.skipChildren(fragment)).toBe(false)
         })
+        test('return false given a document', () => {
+            expect(config.skipChildren(document)).toBe(false)
+        })
     })
     describe('with options', () => {
         const config = optionsToConfig({
@@ -61,6 +64,9 @@ describe('skipChildren', () => {
         })
         test('return true given a document fragment', () => {
             expect(config.skipChildren(fragment)).toBe(true)
+        })
+        test('return false given a document', () => {
+            expect(config.skipChildren(document)).toBe(false)
         })
     })
 })

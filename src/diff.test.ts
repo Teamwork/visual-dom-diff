@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom'
 import { Options } from './config'
 import { CompareNodesResult, visualDomDiff } from './diff'
 import { areNodesEqual, isElement, isText } from './util'
@@ -26,6 +27,27 @@ function trimLines(text: string): string {
 }
 
 test.each<[string, Node, Node, string, Options | undefined]>([
+    [
+        'empty documents',
+        new JSDOM('').window.document,
+        new JSDOM('').window.document,
+        '<html><head></head><body></body></html>',
+        undefined
+    ],
+    [
+        'documents with identical content',
+        new JSDOM('Hello').window.document,
+        new JSDOM('Hello').window.document,
+        '<html><head></head><body>Hello</body></html>',
+        undefined
+    ],
+    [
+        'documents with different content',
+        new JSDOM('Prefix Old Suffix').window.document,
+        new JSDOM('Prefix New Suffix').window.document,
+        '<html><head></head><body>Prefix <del class="vdd-removed">Old</del><ins class="vdd-added">New</ins> Suffix</body></html>',
+        undefined
+    ],
     [
         'empty document fragments',
         document.createDocumentFragment(),
@@ -469,7 +491,7 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         const oldClone = oldNode.cloneNode(true)
         const newClone = newNode.cloneNode(true)
         const fragment = visualDomDiff(oldNode, newNode, options)
-        expect(fragment).toBeInstanceOf(DocumentFragment)
+        expect(fragment.nodeName).toBe('#document-fragment')
         expect(fragmentToHtml(fragment)).toBe(expectedHtml)
         expect(areNodesEqual(oldNode, oldClone, true)).toBe(true)
         expect(areNodesEqual(newNode, newClone, true)).toBe(true)

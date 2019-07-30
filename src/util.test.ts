@@ -1,10 +1,12 @@
 import { Change } from 'diff'
+import { JSDOM } from 'jsdom'
 import {
     areArraysEqual,
     areNodesEqual,
     diffText,
     getAncestors,
     isComment,
+    isDocument,
     isDocumentFragment,
     isElement,
     isText,
@@ -46,6 +48,9 @@ describe('isText', () => {
     test('return false given a SPAN', () => {
         expect(isText(span)).toBe(false)
     })
+    test('return false given a document', () => {
+        expect(isText(document)).toBe(false)
+    })
     test('return false given a document fragment', () => {
         expect(isText(fragment)).toBe(false)
     })
@@ -61,11 +66,33 @@ describe('isElement', () => {
     test('return true given a SPAN', () => {
         expect(isElement(span)).toBe(true)
     })
+    test('return false given a document', () => {
+        expect(isElement(document)).toBe(false)
+    })
     test('return false given a document fragment', () => {
         expect(isElement(fragment)).toBe(false)
     })
     test('return false given a comment', () => {
         expect(isElement(comment)).toBe(false)
+    })
+})
+
+describe('isDocument', () => {
+    test('return false given a text node', () => {
+        expect(isDocument(text)).toBe(false)
+    })
+    test('return false given a SPAN', () => {
+        expect(isDocument(span)).toBe(false)
+    })
+    test('return true given a document', () => {
+        expect(isDocument(document)).toBe(true)
+        expect(isDocument(new JSDOM('').window.document)).toBe(true)
+    })
+    test('return false given a document fragment', () => {
+        expect(isDocument(fragment)).toBe(false)
+    })
+    test('return false given a comment', () => {
+        expect(isDocument(comment)).toBe(false)
     })
 })
 
@@ -75,6 +102,9 @@ describe('isDocumentFragment', () => {
     })
     test('return false given a SPAN', () => {
         expect(isDocumentFragment(span)).toBe(false)
+    })
+    test('return false given a document', () => {
+        expect(isDocumentFragment(document)).toBe(false)
     })
     test('return true given a document fragment', () => {
         expect(isDocumentFragment(fragment)).toBe(true)
@@ -90,6 +120,9 @@ describe('isComment', () => {
     })
     test('return false given a SPAN', () => {
         expect(isComment(span)).toBe(false)
+    })
+    test('return false given a document', () => {
+        expect(isComment(document)).toBe(false)
     })
     test('return true given a document fragment', () => {
         expect(isComment(fragment)).toBe(false)

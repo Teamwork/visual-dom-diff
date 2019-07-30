@@ -2,6 +2,7 @@ import { DomIteratorOptions } from './domIterator'
 import {
     areNodesEqual,
     IndefiniteNodePredicate,
+    isDocument,
     isDocumentFragment,
     isElement,
     isText,
@@ -134,7 +135,11 @@ export function optionsToConfig({
         modifiedClass,
         removedClass,
         skipChildren(node: Node): boolean {
-            if (!isElement(node) && !isDocumentFragment(node)) {
+            if (
+                !isElement(node) &&
+                !isDocumentFragment(node) &&
+                !isDocument(node)
+            ) {
                 return true
             }
 

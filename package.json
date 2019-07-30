@@ -42,8 +42,10 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.16",
+    "@types/jsdom": "^12.2.4",
     "husky": "^3.0.2",
     "jest": "^24.8.0",
+    "jsdom": "^15.1.1",
     "prettier": "^1.18.2",
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.2",

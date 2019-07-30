@@ -61,6 +61,7 @@ export function visualDomDiff(
     let newOffset = 0
 
     // Output variables.
+    const document = newRootNode.ownerDocument || (newRootNode as Document)
     const rootOutputNode = document.createDocumentFragment()
     let oldOutputNode: Node = rootOutputNode
     let oldOutputDepth = 0
