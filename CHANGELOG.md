@@ -1,3 +1,7 @@
+# 0.1.3
+
+- Stop using Browser globals to support running in node with jsdom.
+
 # 0.1.2
 
 - Support diffing documents.
