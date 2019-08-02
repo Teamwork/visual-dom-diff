@@ -347,7 +347,7 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         'multiple spaces between words',
         htmlToFragment('prefix  suffix'),
         htmlToFragment('prefix   suffix'),
-        'prefix<del class="vdd-removed">  </del><ins class="vdd-added">   </ins>suffix',
+        'prefix  <ins class="vdd-added"> </ins>suffix',
         undefined
     ],
     [
@@ -393,7 +393,7 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         'custom class names',
         htmlToFragment('<strong>Modified</strong> Removed'),
         htmlToFragment('Modified Added'),
-        '<ins class="MODIFIED">Modified</ins> <del class="REMOVED">Removed</del><ins class="ADDED">Added</ins>',
+        '<ins class="MODIFIED">Modified</ins> <del class="REMOVED">Remov</del><ins class="ADDED">Add</ins>ed',
         {
             addedClass: 'ADDED',
             modifiedClass: 'MODIFIED',
@@ -404,16 +404,9 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         'change letter case',
         htmlToFragment('Lowercase Removed'),
         htmlToFragment('lowercase Added'),
-        '<del class="vdd-removed">Lowercase</del><ins class="vdd-added">lowercase</ins> ' +
-            '<del class="vdd-removed">Removed</del><ins class="vdd-added">Added</ins>',
+        '<del class="vdd-removed">L</del><ins class="vdd-added">l</ins>owercase ' +
+            '<del class="vdd-removed">Remov</del><ins class="vdd-added">Add</ins>ed',
         undefined
-    ],
-    [
-        'change letter case - case insensitive',
-        htmlToFragment('Lowercase Removed'),
-        htmlToFragment('lowercase Added'),
-        'lowercase <del class="vdd-removed">Removed</del><ins class="vdd-added">Added</ins>',
-        { ignoreCase: true }
     ],
     [
         'remove paragraph',

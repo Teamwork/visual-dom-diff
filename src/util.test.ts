@@ -1,4 +1,4 @@
-import { Change } from 'diff'
+import { DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT } from 'diff-match-patch'
 import { JSDOM } from 'jsdom'
 import {
     areArraysEqual,
@@ -315,83 +315,76 @@ describe('never', () => {
 })
 
 describe('diffText', () => {
-    const result = (
-        added: boolean,
-        removed: boolean,
-        value: string
-    ): Change => ({ count: undefined, added, removed, value })
-
     test('empty inputs', () => {
         expect(diffText('', '')).toStrictEqual([])
     })
     test('identical inputs', () => {
-        expect(diffText('test', 'test')).toStrictEqual([
-            result(false, false, 'test')
-        ])
+        expect(diffText('test', 'test')).toStrictEqual([[DIFF_EQUAL, 'test']])
     })
     test('different letter case', () => {
         expect(diffText('test', 'Test')).toStrictEqual([
-            result(false, true, 'test'),
-            result(true, false, 'Test')
-        ])
-    })
-    test('different letter case with ignoreCase option', () => {
-        expect(diffText('test', 'Test', { ignoreCase: true })).toStrictEqual([
-            result(false, false, 'Test')
+            [DIFF_DELETE, 't'],
+            [DIFF_INSERT, 'T'],
+            [DIFF_EQUAL, 'est']
         ])
     })
     test('different whitespace', () => {
         expect(diffText('start  end', 'start     end')).toStrictEqual([
-            result(false, false, 'start'),
-            result(false, true, '  '),
-            result(true, false, '     '),
-            result(false, false, 'end')
+            [DIFF_EQUAL, 'start  '],
+            [DIFF_INSERT, '   '],
+            [DIFF_EQUAL, 'end']
         ])
     })
     test('word added', () => {
         expect(diffText('start end', 'start add end')).toStrictEqual([
-            result(false, false, 'start '),
-            result(true, false, 'add '),
-            result(false, false, 'end')
+            [DIFF_EQUAL, 'start '],
+            [DIFF_INSERT, 'add '],
+            [DIFF_EQUAL, 'end']
         ])
     })
     test('word removed', () => {
         expect(diffText('start remove end', 'start end')).toStrictEqual([
-            result(false, false, 'start '),
-            result(false, true, 'remove '),
-            result(false, false, 'end')
+            [DIFF_EQUAL, 'start '],
+            [DIFF_DELETE, 'remove '],
+            [DIFF_EQUAL, 'end']
         ])
     })
     test('word replaced', () => {
         expect(diffText('start remove end', 'start add end')).toStrictEqual([
-            result(false, false, 'start '),
-            result(false, true, 'remove'),
-            result(true, false, 'add'),
-            result(false, false, ' end')
+            [DIFF_EQUAL, 'start '],
+            [DIFF_DELETE, 'remove'],
+            [DIFF_INSERT, 'add'],
+            [DIFF_EQUAL, ' end']
         ])
     })
     test('word added with \\0', () => {
         expect(diffText('\0start\0end', '\0start\0add\0end')).toStrictEqual([
-            result(false, false, '\0start'),
-            result(true, false, '\0add'),
-            result(false, false, '\0end')
+            [DIFF_EQUAL, '\0start'],
+            [DIFF_INSERT, '\0add'],
+            [DIFF_EQUAL, '\0end']
         ])
     })
     test('word removed with \\0', () => {
         expect(diffText('\0start\0remove\0end', '\0start\0end')).toStrictEqual([
-            result(false, false, '\0start'),
-            result(false, true, '\0remove'),
-            result(false, false, '\0end')
+            [DIFF_EQUAL, '\0start'],
+            [DIFF_DELETE, '\0remove'],
+            [DIFF_EQUAL, '\0end']
         ])
     })
     test('word replaced with \\0', () => {
         expect(
             diffText('\0start\0remove\0end', '\0start\0add\0end')
         ).toStrictEqual([
-            result(false, false, '\0start\0'),
-            result(false, true, 'remove'),
-            result(true, false, 'add'),
-            result(false, false, '\0end')
+            [DIFF_EQUAL, '\0start\0'],
+            [DIFF_DELETE, 'remove'],
+            [DIFF_INSERT, 'add'],
+            [DIFF_EQUAL, '\0end']
+        ])
+    })
+    test('semantic diff', () => {
+        expect(diffText('mouse', 'sofas')).toStrictEqual([
+            [DIFF_DELETE, 'mouse'],
+            [DIFF_INSERT, 'sofas']
         ])
     })
 })

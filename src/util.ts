@@ -1,4 +1,4 @@
-import { Change, diffWordsWithSpace, WordsOptions } from 'diff'
+import { Diff, DIFF_EQUAL, diff_match_patch } from 'diff-match-patch'
 
 export type NodePredicate = (node: Node) => boolean
 export type IndefiniteNodePredicate = (node: Node) => boolean | undefined
@@ -147,45 +147,35 @@ function endsWithNull(text: string): boolean {
     return text.length > 0 && text[text.length - 1] === '\0'
 }
 
-/**
- * Delegates the call to `diff.diffWordsWithSpace` and fixes the result, so that trailing `\0` characters
- * in the "added" and "removed" diff result items are moved to the front, if possible, which is necessary
- * to improve the quality of the DOM diffs.
- * Additionally, the "count" properties are set to undefined and empty diff items are removed.
- */
-export function diffText(
-    text1: string,
-    text2: string,
-    options?: WordsOptions
-): Change[] {
-    const results = diffWordsWithSpace(text1, text2, options)
+const dmp = new diff_match_patch()
 
-    for (let i = 0, l = results.length - 2; i < l; ++i) {
-        const result0 = results[i]
-        const result1 = results[i + 1]
-        const result2 = results[i + 2]
+/**
+ * Diffs the 2 strings and cleans up the result before returning it.
+ */
+export function diffText(text1: string, text2: string): Diff[] {
+    const diff = dmp.diff_main(text1, text2)
+    dmp.diff_cleanupSemantic(diff)
+
+    // The trailing `\0` characters, which are placeholders for HTML tags,
+    // in the DIFF_INSERT and DIFF_DELETE diffs are moved to the front,
+    // if possible, in order to improve quality of the DOM diffs.
+    for (let i = 0, l = diff.length - 2; i < l; ++i) {
+        const diff0 = diff[i]
+        const diff1 = diff[i + 1]
+        const diff2 = diff[i + 2]
 
         if (
-            !(result0.added || result0.removed) &&
-            (result1.added || result1.removed) &&
-            !(result2.added || result2.removed)
+            diff0[0] === DIFF_EQUAL &&
+            diff1[0] !== DIFF_EQUAL &&
+            diff2[0] === DIFF_EQUAL
         ) {
-            while (endsWithNull(result0.value) && endsWithNull(result1.value)) {
-                result0.value = result0.value.substring(
-                    0,
-                    result0.value.length - 1
-                )
-                result1.value =
-                    '\0' + result1.value.substring(0, result1.value.length - 1)
-                result2.value = '\0' + result2.value
+            while (endsWithNull(diff0[1]) && endsWithNull(diff1[1])) {
+                diff0[1] = diff0[1].substring(0, diff0[1].length - 1)
+                diff1[1] = '\0' + diff1[1].substring(0, diff1[1].length - 1)
+                diff2[1] = '\0' + diff2[1]
             }
         }
     }
 
-    return results.filter(result => {
-        result.count = undefined
-        result.added = !!result.added
-        result.removed = !!result.removed
-        return result.value.length > 0
-    })
+    return diff
 }

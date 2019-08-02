@@ -26,7 +26,6 @@ Changes to text or document structure are represented as deletions (`<del class=
 
 ### Options
 
-- `ignoreCase: boolean = false` Should the comparison ignore letter case.
 - `addedClass: string = 'vdd-added'` The class used for annotating content additions.
 - `modifiedClass: string = 'vdd-modified'` The class used for annotating content modifications.
 - `removedClass: string = 'vdd-removed'` The class used for annotating content removals.

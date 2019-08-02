@@ -1,3 +1,4 @@
+import { DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
 import { CompareNodesResult, Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
@@ -27,7 +28,6 @@ export function visualDomDiff(
     const config = optionsToConfig(options)
     const {
         addedClass,
-        ignoreCase,
         modifiedClass,
         removedClass,
         skipSelf,
@@ -46,8 +46,7 @@ export function visualDomDiff(
     // Input iterators.
     const diffIterator = diffText(
         serialize(oldRootNode, config),
-        serialize(newRootNode, config),
-        { ignoreCase }
+        serialize(newRootNode, config)
     )[Symbol.iterator]()
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)
@@ -187,7 +186,7 @@ export function visualDomDiff(
     }
 
     function nextDiff(step: number): void {
-        const length = diffItem.value.length
+        const length = diffItem[1].length
         diffOffset += step
         if (diffOffset === length) {
             ;({ done: diffDone, value: diffItem } = diffIterator.next())
@@ -232,7 +231,7 @@ export function visualDomDiff(
     // while deduplicating identical content.
     // Difference markers and formatting are excluded at this stage.
     while (!diffDone) {
-        if (diffItem.removed) {
+        if (diffItem[0] === DIFF_DELETE) {
             /* istanbul ignore if */
             if (oldDone) {
                 return never()
@@ -241,13 +240,10 @@ export function visualDomDiff(
             prepareOldOutput()
 
             const length = Math.min(
-                diffItem.value.length - diffOffset,
+                diffItem[1].length - diffOffset,
                 getLength(oldNode) - oldOffset
             )
-            const text = diffItem.value.substring(
-                diffOffset,
-                diffOffset + length
-            )
+            const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
             appendOldChild(
                 isText(oldNode)
@@ -257,7 +253,7 @@ export function visualDomDiff(
 
             nextDiff(length)
             nextOld(length)
-        } else if (diffItem.added) {
+        } else if (diffItem[0] === DIFF_INSERT) {
             /* istanbul ignore if */
             if (newDone) {
                 return never()
@@ -266,14 +262,11 @@ export function visualDomDiff(
             prepareNewOutput()
 
             const length = Math.min(
-                diffItem.value.length - diffOffset,
+                diffItem[1].length - diffOffset,
                 getLength(oldNode) - oldOffset,
                 getLength(newNode) - newOffset
             )
-            const text = diffItem.value.substring(
-                diffOffset,
-                diffOffset + length
-            )
+            const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
             appendNewChild(
                 isText(newNode)
@@ -293,14 +286,11 @@ export function visualDomDiff(
             prepareNewOutput()
 
             const length = Math.min(
-                diffItem.value.length - diffOffset,
+                diffItem[1].length - diffOffset,
                 getLength(oldNode) - oldOffset,
                 getLength(newNode) - newOffset
             )
-            const text = diffItem.value.substring(
-                diffOffset,
-                diffOffset + length
-            )
+            const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
             if (isText(oldNode) && isText(newNode)) {
                 if (oldOutputNode === newOutputNode) {
