@@ -1,7 +1,9 @@
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
 import { visualDomDiff } from '../lib'
+import './main.css'
 
 window.addEventListener('load', () => {
-    const ignoreCaseCheckbox = document.getElementById('ignore-case')
     const input1Html = document.getElementById('input1-html')
     const input1 = document.getElementById('input1')
     const input2Html = document.getElementById('input2-html')
@@ -16,11 +18,7 @@ window.addEventListener('load', () => {
     }
     const updateDiff = () => {
         output.innerHTML = ''
-        output.appendChild(
-            visualDomDiff(input1.firstChild, input2.firstChild, {
-                ignoreCase: ignoreCaseCheckbox.checked
-            })
-        )
+        output.appendChild(visualDomDiff(input1.firstChild, input2.firstChild))
         outputHtml.value = output.innerHTML
     }
 
@@ -30,9 +28,6 @@ window.addEventListener('load', () => {
     })
     input2Html.addEventListener('input', () => {
         updateInput2()
-        updateDiff()
-    })
-    ignoreCaseCheckbox.addEventListener('change', () => {
         updateDiff()
     })
     updateInput1()
