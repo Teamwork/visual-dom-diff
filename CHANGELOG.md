@@ -1,3 +1,9 @@
+# 0.2.0
+
+BREAKING CHANGE: The `ignoreCase` option is no longer supported.
+
+- Use the `diff-match-patch` instead of the `diff` module to improve performance.
+
 # 0.1.3
 
 - Stop using Browser globals to support running in node with jsdom.
