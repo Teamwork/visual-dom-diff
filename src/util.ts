@@ -143,8 +143,68 @@ export function never(
     throw new Error(message)
 }
 
-function endsWithNull(text: string): boolean {
-    return text.length > 0 && text[text.length - 1] === '\0'
+// Source: https://stackoverflow.com/a/7616484/706807 (simplified)
+export function hashCode(str: string): number {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+        // tslint:disable-next-line:no-bitwise
+        hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0
+    }
+    return hash
+}
+
+/**
+ * Returns a single character which should replace the given node name
+ * when serializing a non-text node.
+ */
+export function charForNodeName(nodeName: string): string {
+    return String.fromCharCode(
+        0xe000 + (hashCode(nodeName) % (0xf900 - 0xe000))
+    )
+}
+
+/**
+ * Moves trailing HTML tag markers in the DIFF_INSERT and DIFF_DELETE diffs to the front,
+ * if possible, in order to improve quality of the DOM diffs.
+ */
+export function cleanUpNodeMarkers(diff: Diff[]): void {
+    for (let i = 0; i < diff.length - 2; ) {
+        const diff0 = diff[i]
+        const diff1 = diff[i + 1]
+        const diff2 = diff[i + 2]
+
+        if (
+            diff0[0] !== DIFF_EQUAL &&
+            diff1[0] === DIFF_EQUAL &&
+            diff2[0] !== DIFF_EQUAL
+        ) {
+            i++
+            continue
+        }
+
+        const string0 = diff0[1]
+        const string1 = diff1[1]
+        const string2 = diff2[1]
+        const lastChar0 = string0[string0.length - 1]
+        const lastChar1 = string1[string1.length - 1]
+
+        if (
+            lastChar0 !== lastChar1 ||
+            lastChar0 < '\uE000' ||
+            lastChar0 >= '\uF900'
+        ) {
+            i++
+            continue
+        }
+
+        diff0[1] = string0.substring(0, string0.length - 1)
+        diff1[1] = lastChar0 + string1.substring(0, string1.length - 1)
+        diff2[1] = lastChar0 + string2
+
+        if (diff0[1].length === 0) {
+            diff.splice(i, 1)
+        }
+    }
 }
 
 const dmp = new diff_match_patch()
@@ -155,27 +215,6 @@ const dmp = new diff_match_patch()
 export function diffText(text1: string, text2: string): Diff[] {
     const diff = dmp.diff_main(text1, text2)
     dmp.diff_cleanupSemantic(diff)
-
-    // The trailing `\0` characters, which are placeholders for HTML tags,
-    // in the DIFF_INSERT and DIFF_DELETE diffs are moved to the front,
-    // if possible, in order to improve quality of the DOM diffs.
-    for (let i = 0, l = diff.length - 2; i < l; ++i) {
-        const diff0 = diff[i]
-        const diff1 = diff[i + 1]
-        const diff2 = diff[i + 2]
-
-        if (
-            diff0[0] === DIFF_EQUAL &&
-            diff1[0] !== DIFF_EQUAL &&
-            diff2[0] === DIFF_EQUAL
-        ) {
-            while (endsWithNull(diff0[1]) && endsWithNull(diff1[1])) {
-                diff0[1] = diff0[1].substring(0, diff0[1].length - 1)
-                diff1[1] = '\0' + diff1[1].substring(0, diff1[1].length - 1)
-                diff2[1] = '\0' + diff2[1]
-            }
-        }
-    }
-
+    cleanUpNodeMarkers(diff)
     return diff
 }

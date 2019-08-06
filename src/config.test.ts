@@ -1,4 +1,4 @@
-import { CompareNodesResult, optionsToConfig } from './config'
+import { optionsToConfig } from './config'
 import { isComment, isDocumentFragment, isText } from './util'
 
 const text = document.createTextNode('text')
@@ -126,93 +126,6 @@ describe('skipSelf', () => {
         })
         test('return true given a document fragment', () => {
             expect(config.skipSelf(fragment)).toBe(true)
-        })
-    })
-})
-
-describe('compareNodes', () => {
-    const div1 = div.cloneNode(false) as Element
-    div1.setAttribute('key', 'value 1')
-    const div2 = div.cloneNode(false) as Element
-    div2.setAttribute('key', 'value 2')
-
-    const span1 = span.cloneNode(false) as Element
-    span1.setAttribute('key', 'value 1')
-    const span2 = span.cloneNode(false) as Element
-    span2.setAttribute('key', 'value 2')
-
-    const text1 = document.createTextNode('text 1')
-    const text2 = document.createTextNode('text 2')
-
-    describe('without options', () => {
-        const config = optionsToConfig()
-
-        test.each<[HTMLElement | Comment | DocumentFragment]>([
-            [text],
-            [span],
-            [div],
-            [video],
-            [comment],
-            [fragment]
-        ])('return IDENTICAL #%#', node => {
-            expect(config.compareNodes(node, node.cloneNode(false))).toBe(
-                CompareNodesResult.IDENTICAL
-            )
-        })
-
-        test.each<[Element | Comment, Element | Comment]>([
-            [text, comment],
-            [video, div],
-            [text1, text2],
-            [div1, div2],
-            [span1, span2]
-        ])('return different #%#', (node1, node2) => {
-            expect(config.compareNodes(node1, node2)).toBe(
-                CompareNodesResult.DIFFERENT
-            )
-        })
-    })
-    describe('with options', () => {
-        const config = optionsToConfig({
-            compareNodes(
-                node1: Node,
-                node2: Node
-            ): CompareNodesResult | undefined {
-                return node1.nodeName === 'DIV' && node2.nodeName === 'DIV'
-                    ? CompareNodesResult.IDENTICAL
-                    : node1.nodeType === Node.TEXT_NODE &&
-                      node2.nodeType === Node.TEXT_NODE &&
-                      (node1 as Text).data !== (node2 as Text).data
-                    ? CompareNodesResult.SIMILAR
-                    : node1.nodeType === Node.COMMENT_NODE
-                    ? CompareNodesResult.DIFFERENT
-                    : undefined
-            }
-        })
-        test('override DIFFERENT -> IDENTICAL', () => {
-            expect(config.compareNodes(div1, div2)).toBe(
-                CompareNodesResult.IDENTICAL
-            )
-        })
-        test('override DIFFERENT -> SIMILAR', () => {
-            expect(config.compareNodes(text1, text2)).toBe(
-                CompareNodesResult.SIMILAR
-            )
-        })
-        test('override IDENTICAL -> DIFFERENT', () => {
-            expect(config.compareNodes(comment, comment)).toBe(
-                CompareNodesResult.DIFFERENT
-            )
-        })
-        test('default DIFFERENT', () => {
-            expect(config.compareNodes(span1, span2)).toBe(
-                CompareNodesResult.DIFFERENT
-            )
-        })
-        test('default IDENTICAL', () => {
-            expect(config.compareNodes(video, video.cloneNode(false))).toBe(
-                CompareNodesResult.IDENTICAL
-            )
         })
     })
 })

@@ -1,8 +1,9 @@
 import { DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
-import { CompareNodesResult, Config, Options, optionsToConfig } from './config'
+import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
     areNodesEqual,
+    charForNodeName,
     diffText,
     getAncestors,
     isElement,
@@ -10,15 +11,20 @@ import {
     never
 } from './util'
 
+/**
+ * Stringifies a DOM node recursively. Text nodes are represented by their `data`,
+ * while all other nodes are represented by a single Unicode code point
+ * from the Private Use Area of the Basic Multilingual Plane.
+ */
 const serialize = (root: Node, config: Config): string =>
     [...new DomIterator(root, config)].reduce(
-        (text, node) => text + (isText(node) ? node.data : '\0'),
+        (text, node) =>
+            text + (isText(node) ? node.data : charForNodeName(node.nodeName)),
         ''
     )
 
 const getLength = (node: Node): number => (isText(node) ? node.length : 1)
 
-export { CompareNodesResult, Options }
 export function visualDomDiff(
     oldRootNode: Node,
     newRootNode: Node,
@@ -26,13 +32,7 @@ export function visualDomDiff(
 ): DocumentFragment {
     // Define config and simple helpers.
     const config = optionsToConfig(options)
-    const {
-        addedClass,
-        modifiedClass,
-        removedClass,
-        skipSelf,
-        compareNodes
-    } = config
+    const { addedClass, modifiedClass, removedClass, skipSelf } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
         getAncestors(node, rootNode).filter(notSkipSelf).length
@@ -113,8 +113,8 @@ export function visualDomDiff(
         }
     }
 
-    function appendChild(node: Node, modified = false): void {
-        let nodeModified = modified
+    function appendChild(node: Node): void {
+        let nodeModified = false
 
         /* istanbul ignore if */
         if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
@@ -131,10 +131,7 @@ export function visualDomDiff(
                 nodeModified = true
             } else {
                 for (let i = 0; i < length; ++i) {
-                    if (
-                        compareNodes(oldFormatting[i], newFormatting[i]) !==
-                        CompareNodesResult.IDENTICAL
-                    ) {
+                    if (!areNodesEqual(oldFormatting[i], newFormatting[i])) {
                         nodeModified = true
                         break
                     }
@@ -263,7 +260,6 @@ export function visualDomDiff(
 
             const length = Math.min(
                 diffItem[1].length - diffOffset,
-                getLength(oldNode) - oldOffset,
                 getLength(newNode) - newOffset
             )
             const text = diffItem[1].substring(diffOffset, diffOffset + length)
@@ -299,30 +295,22 @@ export function visualDomDiff(
                     appendOldChild(document.createTextNode(text))
                     appendNewChild(document.createTextNode(text))
                 }
+            } else if (
+                oldOutputNode === newOutputNode &&
+                areNodesEqual(oldNode, newNode)
+            ) {
+                appendChild(newNode.cloneNode(false))
             } else {
-                const result = compareNodes(oldNode, newNode)
-                if (result !== CompareNodesResult.DIFFERENT) {
-                    if (oldOutputNode === newOutputNode) {
-                        appendChild(
-                            newNode.cloneNode(false),
-                            result !== CompareNodesResult.IDENTICAL
-                        )
-                    } else {
-                        appendOldChild(oldNode.cloneNode(false))
-                        appendNewChild(newNode.cloneNode(false))
-                    }
-                } else {
-                    appendOldChild(
-                        isText(oldNode)
-                            ? document.createTextNode(text)
-                            : oldNode.cloneNode(false)
-                    )
-                    appendNewChild(
-                        isText(newNode)
-                            ? document.createTextNode(text)
-                            : newNode.cloneNode(false)
-                    )
-                }
+                appendOldChild(
+                    isText(oldNode)
+                        ? document.createTextNode(text)
+                        : oldNode.cloneNode(false)
+                )
+                appendNewChild(
+                    isText(newNode)
+                        ? document.createTextNode(text)
+                        : newNode.cloneNode(false)
+                )
             }
 
             nextDiff(length)

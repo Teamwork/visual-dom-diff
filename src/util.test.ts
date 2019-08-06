@@ -1,8 +1,10 @@
-import { DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT } from 'diff-match-patch'
+import { Diff, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT } from 'diff-match-patch'
 import { JSDOM } from 'jsdom'
 import {
     areArraysEqual,
     areNodesEqual,
+    charForNodeName,
+    cleanUpNodeMarkers,
     diffText,
     getAncestors,
     isComment,
@@ -27,6 +29,9 @@ const identicalComment = document.createComment('comment')
 const differentComment = document.createComment('different comment')
 const fragment = document.createDocumentFragment()
 const anotherFragment = document.createDocumentFragment()
+const pChar = charForNodeName('P')
+const ulChar = charForNodeName('UL')
+const liChar = charForNodeName('LI')
 
 span.setAttribute('data-a', 'a')
 span.setAttribute('data-b', 'b')
@@ -357,34 +362,106 @@ describe('diffText', () => {
             [DIFF_EQUAL, ' end']
         ])
     })
-    test('word added with \\0', () => {
-        expect(diffText('\0start\0end', '\0start\0add\0end')).toStrictEqual([
-            [DIFF_EQUAL, '\0start'],
-            [DIFF_INSERT, '\0add'],
-            [DIFF_EQUAL, '\0end']
-        ])
-    })
-    test('word removed with \\0', () => {
-        expect(diffText('\0start\0remove\0end', '\0start\0end')).toStrictEqual([
-            [DIFF_EQUAL, '\0start'],
-            [DIFF_DELETE, '\0remove'],
-            [DIFF_EQUAL, '\0end']
-        ])
-    })
-    test('word replaced with \\0', () => {
+    test('word added with a node marker', () => {
         expect(
-            diffText('\0start\0remove\0end', '\0start\0add\0end')
+            diffText(
+                `${pChar}start${pChar}end`,
+                `${pChar}start${pChar}add${pChar}end`
+            )
         ).toStrictEqual([
-            [DIFF_EQUAL, '\0start\0'],
+            [DIFF_EQUAL, `${pChar}start`],
+            [DIFF_INSERT, `${pChar}add`],
+            [DIFF_EQUAL, `${pChar}end`]
+        ])
+    })
+    test('word removed with a node marker', () => {
+        expect(
+            diffText(
+                `${pChar}start${pChar}remove${pChar}end`,
+                `${pChar}start${pChar}end`
+            )
+        ).toStrictEqual([
+            [DIFF_EQUAL, `${pChar}start`],
+            [DIFF_DELETE, `${pChar}remove`],
+            [DIFF_EQUAL, `${pChar}end`]
+        ])
+    })
+    test('word replaced in text with node markers', () => {
+        expect(
+            diffText(
+                `${pChar}start${pChar}remove${pChar}end`,
+                `${pChar}start${pChar}add${pChar}end`
+            )
+        ).toStrictEqual([
+            [DIFF_EQUAL, `${pChar}start${pChar}`],
             [DIFF_DELETE, 'remove'],
             [DIFF_INSERT, 'add'],
-            [DIFF_EQUAL, '\0end']
+            [DIFF_EQUAL, `${pChar}end`]
         ])
     })
     test('semantic diff', () => {
         expect(diffText('mouse', 'sofas')).toStrictEqual([
             [DIFF_DELETE, 'mouse'],
             [DIFF_INSERT, 'sofas']
+        ])
+    })
+})
+
+describe('cleanUpNodeMarkers', () => {
+    test('cleans up multiple node markers in delete', () => {
+        const diff: Diff[] = [
+            [DIFF_EQUAL, `abc${pChar}${ulChar}${liChar}${liChar}`],
+            [DIFF_DELETE, `${pChar}${ulChar}${liChar}${liChar}`],
+            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`]
+        ]
+        cleanUpNodeMarkers(diff)
+        expect(diff).toStrictEqual([
+            [DIFF_EQUAL, `abc`],
+            [DIFF_DELETE, `${pChar}${ulChar}${liChar}${liChar}`],
+            [
+                DIFF_EQUAL,
+                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`
+            ]
+        ])
+    })
+    test('cleans up multiple node markers in insert', () => {
+        const diff: Diff[] = [
+            [DIFF_EQUAL, `abc${pChar}${ulChar}${liChar}${liChar}`],
+            [DIFF_INSERT, `${pChar}${ulChar}${liChar}${liChar}`],
+            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`]
+        ]
+        cleanUpNodeMarkers(diff)
+        expect(diff).toStrictEqual([
+            [DIFF_EQUAL, `abc`],
+            [DIFF_INSERT, `${pChar}${ulChar}${liChar}${liChar}`],
+            [
+                DIFF_EQUAL,
+                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`
+            ]
+        ])
+    })
+    test('cleans up a node marker in delete and removes a redundant diff item', () => {
+        const diff: Diff[] = [
+            [DIFF_EQUAL, `${pChar}`],
+            [DIFF_DELETE, `abc${pChar}`],
+            [DIFF_EQUAL, `${pChar}xyz`]
+        ]
+        cleanUpNodeMarkers(diff)
+        expect(diff).toStrictEqual([
+            [DIFF_DELETE, `${pChar}abc`],
+            [DIFF_EQUAL, `${pChar}${pChar}xyz`]
+        ])
+    })
+    test('cleans up a node marker in insert and removes a redundant diff item', () => {
+        const diff: Diff[] = [
+            [DIFF_EQUAL, `${pChar}`],
+            [DIFF_INSERT, `abc${pChar}`],
+            [DIFF_EQUAL, `${pChar}xyz`]
+        ]
+        cleanUpNodeMarkers(diff)
+        expect(diff).toStrictEqual([
+            [DIFF_INSERT, `${pChar}abc`],
+            [DIFF_EQUAL, `${pChar}${pChar}xyz`]
         ])
     })
 })

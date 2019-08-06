@@ -1,3 +1,9 @@
+# 0.3.0
+
+BREAKING CHANGE: The `compareNodes` option is no longer supported.
+
+- Improve the diff output quality.
+
 # 0.2.0
 
 BREAKING CHANGE: The `ignoreCase` option is no longer supported.

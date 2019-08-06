@@ -1,8 +1,8 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const path = require('path')
 
-module.exports = {
+const isDevServer = process.argv[1].indexOf('webpack-dev-server') >= 0
+const config = {
     mode: 'development',
     entry: __dirname + '/demo/main.js',
     output: {
@@ -32,7 +32,6 @@ module.exports = {
         ]
     },
     plugins: [
-        new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: __dirname + '/demo/index.html'
         })
@@ -42,3 +41,9 @@ module.exports = {
         port: 8028
     }
 }
+
+if (!isDevServer) {
+    config.plugins.push(new CleanWebpackPlugin())
+}
+
+module.exports = config

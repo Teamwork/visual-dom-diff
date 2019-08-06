@@ -1,6 +1,5 @@
 import { DomIteratorOptions } from './domIterator'
 import {
-    areNodesEqual,
     IndefiniteNodePredicate,
     isDocument,
     isDocumentFragment,
@@ -8,29 +7,6 @@ import {
     isText,
     NodePredicate
 } from './util'
-
-/**
- * The type of the result returned by the `compareNodes` option.
- */
-export enum CompareNodesResult {
-    /**
-     * Nodes are identical and should not be marked up in the diff result.
-     */
-    IDENTICAL,
-    /**
-     * Nodes are similar and should be marked up in the diff result as modified.
-     */
-    SIMILAR,
-    /**
-     * Nodes are different and should be marked up in the diff result as a removal followed by an insertion.
-     */
-    DIFFERENT
-}
-type IndefiniteCompareNodes = (
-    node1: Node,
-    node2: Node
-) => CompareNodesResult | undefined
-type CompareNodes = (node1: Node, node2: Node) => CompareNodesResult
 
 /**
  * The options for `visualDomDiff`.
@@ -70,11 +46,6 @@ export interface Options {
      * Return `undefined` for the default behaviour.
      */
     skipSelf?: IndefiniteNodePredicate
-    /**
-     * Determines whether the specified nodes are identical, similar or different.
-     * Return `undefined` for the default behaviour.
-     */
-    compareNodes?: IndefiniteCompareNodes
 }
 
 export interface Config extends Options, DomIteratorOptions {
@@ -84,7 +55,6 @@ export interface Config extends Options, DomIteratorOptions {
     readonly removedClass: string
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
-    readonly compareNodes: CompareNodes
 }
 
 const skipChildrenMap = new Set()
@@ -126,8 +96,7 @@ export function optionsToConfig({
     modifiedClass = 'vdd-modified',
     removedClass = 'vdd-removed',
     skipChildren,
-    skipSelf,
-    compareNodes
+    skipSelf
 }: Options = {}): Config {
     return {
         addedClass,
@@ -164,21 +133,6 @@ export function optionsToConfig({
                 }
             }
             return skipSelfMap.has(node.nodeName)
-        },
-        compareNodes(node1: Node, node2: Node): CompareNodesResult {
-            if (compareNodes) {
-                const result = compareNodes(node1, node2)
-                if (
-                    result === CompareNodesResult.IDENTICAL ||
-                    result === CompareNodesResult.SIMILAR ||
-                    result === CompareNodesResult.DIFFERENT
-                ) {
-                    return result
-                }
-            }
-            return areNodesEqual(node1, node2)
-                ? CompareNodesResult.IDENTICAL
-                : CompareNodesResult.DIFFERENT
         }
     }
 }
