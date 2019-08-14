@@ -18,11 +18,6 @@ export interface Options {
      */
     addedClass?: string
     /**
-     * Should the letter case be ignored.
-     * Default is `false`.
-     */
-    ignoreCase?: boolean
-    /**
      * The class name to use to mark up modified content.
      * Default is `'vdd-modified'`.
      */
@@ -32,6 +27,11 @@ export interface Options {
      * Default is `'vdd-removed'`.
      */
     removedClass?: string
+    /**
+     * If `true`, the modified content (text formatting changes) will not be marked.
+     * Default is `false`.
+     */
+    skipModified?: boolean
     /**
      * Indicates if the child nodes of the specified `node` should be ignored.
      * It is useful for ignoring child nodes of an element representing some embedded content,
@@ -50,9 +50,9 @@ export interface Options {
 
 export interface Config extends Options, DomIteratorOptions {
     readonly addedClass: string
-    readonly ignoreCase: boolean
     readonly modifiedClass: string
     readonly removedClass: string
+    readonly skipModified: boolean
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
 }
@@ -92,17 +92,17 @@ skipSelfMap.add('SPAN')
 
 export function optionsToConfig({
     addedClass = 'vdd-added',
-    ignoreCase = false,
     modifiedClass = 'vdd-modified',
     removedClass = 'vdd-removed',
+    skipModified = false,
     skipChildren,
     skipSelf
 }: Options = {}): Config {
     return {
         addedClass,
-        ignoreCase,
         modifiedClass,
         removedClass,
+        skipModified,
         skipChildren(node: Node): boolean {
             if (
                 !isElement(node) &&

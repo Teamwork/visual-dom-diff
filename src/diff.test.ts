@@ -432,6 +432,32 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         ),
         `<p>This homepage is a bit unusual but I wouldn't worry about it. Nor would I tell the authorities, EVER!</p><table border="1" style="border-collapse:collapse;width:360px;"><tbody><tr><td style="width:253px;">scsac</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascsac</td></tr><tr><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td></tr><tr><td style="width:253px;"><del class="vdd-removed"><br></del><ins class="vdd-added">wdqdqwd</ins></td><td style="width:253px;">ascasc</td><td style="width:253px;"><br></td></tr></tbody></table><ins class="vdd-added"><p>sacascascas</p><p>sacasc</p><p>ascasc</p></ins><p><br></p>`,
         undefined
+    ],
+    [
+        'content and formatting changes when skipModified === true',
+        htmlToFragment(
+            '<p>prefix <strong>modified</strong> old suffix removed</p>'
+        ),
+        htmlToFragment(
+            '<p>added prefix <em><u>modified</u></em> new suffix</p>'
+        ),
+        '<p><ins class="vdd-added">added </ins>prefix <em><u>modified</u></em> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p>',
+        {
+            skipModified: true
+        }
+    ],
+    [
+        'content and formatting changes when skipModified === false',
+        htmlToFragment(
+            '<p>prefix <strong>modified</strong> old suffix removed</p>'
+        ),
+        htmlToFragment(
+            '<p>added prefix <em><u>modified</u></em> new suffix</p>'
+        ),
+        '<p><ins class="vdd-added">added </ins>prefix <ins class="vdd-modified"><em><u>modified</u></em></ins> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p>',
+        {
+            skipModified: false
+        }
     ]
 ])(
     '%s',

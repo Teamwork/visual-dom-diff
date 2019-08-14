@@ -29,5 +29,6 @@ Changes to text or document structure are represented as deletions (`<del class=
 - `addedClass: string = 'vdd-added'` The class used for annotating content additions.
 - `modifiedClass: string = 'vdd-modified'` The class used for annotating content modifications.
 - `removedClass: string = 'vdd-removed'` The class used for annotating content removals.
+- `skipModified: boolean = false` If `true`, the modified content (text formatting changes) will not be marked.
 - `skipChildren: (node: Node): boolean | undefined` Indicates if the child nodes of the specified `node` should be ignored. It is useful for ignoring child nodes of an element representing some embedded content, which should not be compared. Return `undefined` for the default behaviour.
 - `skipSelf: (node: Node): boolean | undefined` Indicates if the specified `node` should be ignored. Even if the `node` is ignored, its child nodes will still be processed, unless `skipChildNodes` says they should also be ignored. Ignored elements whose child nodes are processed are treated as formatting elements. Return `undefined` for the default behaviour.

@@ -1,3 +1,7 @@
+# 0.4.0
+
+- Add `skipModified` option.
+
 # 0.3.0
 
 BREAKING CHANGE: The `compareNodes` option is no longer supported.

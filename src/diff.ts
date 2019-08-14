@@ -364,21 +364,23 @@ export function visualDomDiff(
     }
 
     // Mark up the content which has been modified.
-    for (const modifiedNode of modifiedNodes) {
-        const parentNode = modifiedNode.parentNode as Node
-        const previousSibling = modifiedNode.previousSibling
+    if (!config.skipModified) {
+        for (const modifiedNode of modifiedNodes) {
+            const parentNode = modifiedNode.parentNode as Node
+            const previousSibling = modifiedNode.previousSibling
 
-        if (
-            previousSibling &&
-            previousSibling.lastChild &&
-            modifiedNodes.includes(previousSibling.lastChild)
-        ) {
-            previousSibling.appendChild(modifiedNode)
-        } else {
-            const marker = document.createElement('INS')
-            marker.classList.add(modifiedClass)
-            parentNode.insertBefore(marker, modifiedNode)
-            marker.appendChild(modifiedNode)
+            if (
+                previousSibling &&
+                previousSibling.lastChild &&
+                modifiedNodes.includes(previousSibling.lastChild)
+            ) {
+                previousSibling.appendChild(modifiedNode)
+            } else {
+                const marker = document.createElement('INS')
+                marker.classList.add(modifiedClass)
+                parentNode.insertBefore(marker, modifiedNode)
+                marker.appendChild(modifiedNode)
+            }
         }
     }
 
