@@ -1,3 +1,7 @@
+# 0.5.0
+
+- Expose `VisualDomDiffOption` type for TypeScript projects.
+
 # 0.4.0
 
 - Add `skipModified` option.
