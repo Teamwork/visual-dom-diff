@@ -1,3 +1,7 @@
+# 0.5.1
+
+- Fix identical document structure sometimes marked up as changed.
+
 # 0.5.0
 
 - Expose `VisualDomDiffOption` type for TypeScript projects.

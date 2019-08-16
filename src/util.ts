@@ -164,8 +164,8 @@ export function charForNodeName(nodeName: string): string {
 }
 
 /**
- * Moves trailing HTML tag markers in the DIFF_INSERT and DIFF_DELETE diffs to the front,
- * if possible, in order to improve quality of the DOM diffs.
+ * Moves trailing HTML tag markers in the DIFF_INSERT and DIFF_DELETE diff items to the front,
+ * if possible, in order to improve quality of the DOM diff.
  */
 export function cleanUpNodeMarkers(diff: Diff[]): void {
     for (let i = 0; i < diff.length - 2; ) {
@@ -214,7 +214,65 @@ const dmp = new diff_match_patch()
  */
 export function diffText(text1: string, text2: string): Diff[] {
     const diff = dmp.diff_main(text1, text2)
-    dmp.diff_cleanupSemantic(diff)
+    const result: Diff[] = []
+    const temp: Diff[] = []
+
     cleanUpNodeMarkers(diff)
-    return diff
+
+    // Execute `dmp.diff_cleanupSemantic` excluding equal node markers.
+    for (let i = 0, l = diff.length; i < l; ++i) {
+        const item = diff[i]
+
+        if (item[0] === DIFF_EQUAL) {
+            const text = item[1]
+            const totalLength = text.length
+            const prefixLength = /^[^\uE000-\uF8FF]*/.exec(text)![0].length
+
+            if (prefixLength < totalLength) {
+                const suffixLength = /[^\uE000-\uF8FF]*$/.exec(text)![0].length
+
+                if (prefixLength > 0) {
+                    temp.push([DIFF_EQUAL, text.substring(0, prefixLength)])
+                }
+
+                dmp.diff_cleanupSemantic(temp)
+                pushAll(result, temp)
+                temp.length = 0
+
+                result.push([
+                    DIFF_EQUAL,
+                    text.substring(prefixLength, totalLength - suffixLength)
+                ])
+
+                if (suffixLength > 0) {
+                    temp.push([
+                        DIFF_EQUAL,
+                        text.substring(totalLength - suffixLength)
+                    ])
+                }
+            } else {
+                temp.push(item)
+            }
+        } else {
+            temp.push(item)
+        }
+    }
+
+    dmp.diff_cleanupSemantic(temp)
+    pushAll(result, temp)
+    temp.length = 0
+
+    dmp.diff_cleanupMerge(result)
+    cleanUpNodeMarkers(result)
+    return result
+}
+
+function pushAll<T>(array: T[], items: T[]): void {
+    let destination = array.length
+    let source = 0
+    const length = items.length
+
+    while (source < length) {
+        array[destination++] = items[source++]
+    }
 }
