@@ -469,6 +469,168 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         ),
         '<table border="1" data-style="border-collapse:collapse;height:214px;width:760px;"><thead><tr data-style="height:45px;"><th data-style="height:45px;width:253px;">wqdwqd</th><th data-style="height:45px;width:253px;">qwdwqd</th><th data-style="height:45px;width:253px;">wqdwqd</th></tr></thead><tbody><tr data-style="height:45px;"><td data-style="height:45px;width:253px;"> qwdwqd</td><td data-style="height:45px;width:253px;"> qwdwqd</td><td data-style="height:45px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td></tr><tr data-style="height:34px;"><td data-style="height:34px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td><td data-style="height:34px;width:253px;"> replaced</td><td data-style="height:34px;width:253px;"> aXAXa</td></tr><tr data-style="height:45px;"><td data-style="height:45px;width:253px;"> added</td><td data-style="height:45px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td><td data-style="height:45px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td></tr><tr data-style="height:45px;"><td data-style="height:45px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td><td data-style="height:45px;width:253px;"><del class="vdd-removed"> </del><ins class="vdd-added"><br></ins></td><td data-style="height:45px;width:253px;"><strong>wqdwqdwd</strong></td></tr></tbody></table>',
         undefined
+    ],
+    [
+        'add thead to table',
+        htmlToFragment('<table><tbody><tr><td>body</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody></table>'
+        ),
+        '<table><thead><tr><td><ins class="vdd-added">head</ins></td></tr></thead><tbody><tr><td>body</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'remove thead from table',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody></table>'
+        ),
+        htmlToFragment('<table><tbody><tr><td>body</td></tr></tbody></table>'),
+        '<table><thead><tr><td><del class="vdd-removed">head</del></td></tr></thead><tbody><tr><td>body</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'add tr to thead',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr><tr><td>diff</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr><tr><td><ins class="vdd-added">diff</ins></td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'remove tr from thead',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr><tr><td>diff</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr><tr><td><del class="vdd-removed">diff</del></td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'add tr to tbody',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr><tr><td>diff</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr><tr><td><ins class="vdd-added">diff</ins></td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'remove tr from tbody',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr><tr><td>diff</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr><tr><td><del class="vdd-removed">diff</del></td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'add tr to tfoot',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr><tr><td>diff</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr><tr><td><ins class="vdd-added">diff</ins></td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'remove tr from tfoot',
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr><tr><td>diff</td></tr></tfoot></table>'
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr></tfoot></table>'
+        ),
+        '<table><thead><tr><td>head</td></tr></thead><tbody><tr><td>body</td></tr></tbody><tfoot><tr><td>foot</td></tr><tr><td><del class="vdd-removed">diff</del></td></tr></tfoot></table>',
+        undefined
+    ],
+    [
+        'add td to tr',
+        htmlToFragment('<table><tbody><tr><td>body</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><tbody><tr><td>body</td><td>diff</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td>body</td><td><ins class="vdd-added">diff</ins></td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'remove td from tr',
+        htmlToFragment(
+            '<table><tbody><tr><td>body</td><td>diff</td></tr></tbody></table>'
+        ),
+        htmlToFragment('<table><tbody><tr><td>body</td></tr></tbody></table>'),
+        '<table><tbody><tr><td>body</td><td><del class="vdd-removed">diff</del></td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'add li to ul',
+        htmlToFragment('<ul><li>item</li></ul>'),
+        htmlToFragment('<ul><li>item</li><li>diff</li></ul>'),
+        '<ul><li>item</li><li><ins class="vdd-added">diff</ins></li></ul>',
+        undefined
+    ],
+    [
+        'remove li from ul',
+        htmlToFragment('<ul><li>item</li><li>diff</li></ul>'),
+        htmlToFragment('<ul><li>item</li></ul>'),
+        '<ul><li>item</li><li><del class="vdd-removed">diff</del></li></ul>',
+        undefined
+    ],
+    [
+        'add li to ol',
+        htmlToFragment('<ol><li>item</li></ol>'),
+        htmlToFragment('<ol><li>item</li><li>diff</li></ol>'),
+        '<ol><li>item</li><li><ins class="vdd-added">diff</ins></li></ol>',
+        undefined
+    ],
+    [
+        'remove li from ol',
+        htmlToFragment('<ol><li>item</li><li>diff</li></ol>'),
+        htmlToFragment('<ol><li>item</li></ol>'),
+        '<ol><li>item</li><li><del class="vdd-removed">diff</del></li></ol>',
+        undefined
+    ],
+    [
+        'add dd to dl',
+        htmlToFragment('<dl><dt>term</dt></dl>'),
+        htmlToFragment('<dl><dt>term</dt><dd>description</dd></dl>'),
+        '<dl><dt>term</dt><dd><ins class="vdd-added">description</ins></dd></dl>',
+        undefined
+    ],
+    [
+        'remove dd from dl',
+        htmlToFragment('<dl><dt>term</dt><dd>description</dd></dl>'),
+        htmlToFragment('<dl><dt>term</dt></dl>'),
+        '<dl><dt>term</dt><dd><del class="vdd-removed">description</del></dd></dl>',
+        undefined
+    ],
+    [
+        'add complex content to ul',
+        htmlToFragment('<ul><li>item</li></ul>'),
+        htmlToFragment(
+            '<ul><li>item</li><li>prefix <strong>strong</strong> suffix</li><li>another<i>!</i></li></ul>'
+        ),
+        '<ul><li>item</li><li><ins class="vdd-added">prefix <strong>strong</strong> suffix</ins></li><li><ins class="vdd-added">another<i>!</i></ins></li></ul>',
+        undefined
+    ],
+    [
+        'add complex content to ul',
+        htmlToFragment(
+            '<ul><li>item</li><li>prefix <strong>strong</strong> suffix</li><li>another<i>!</i></li></ul>'
+        ),
+        htmlToFragment('<ul><li>item</li></ul>'),
+        '<ul><li>item</li><li><del class="vdd-removed">prefix <strong>strong</strong> suffix</del></li><li><del class="vdd-removed">another<i>!</i></del></li></ul>',
+        undefined
     ]
 ])(
     '%s',

@@ -1,5 +1,10 @@
 import { DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
-import { Config, Options, optionsToConfig } from './config'
+import {
+    Config,
+    invalidMarkerParents,
+    Options,
+    optionsToConfig
+} from './config'
 import { DomIterator } from './domIterator'
 import {
     areNodesEqual,
@@ -8,7 +13,8 @@ import {
     getAncestors,
     isElement,
     isText,
-    never
+    never,
+    wrapNode
 } from './util'
 
 /**
@@ -331,57 +337,18 @@ export function visualDomDiff(
             previousSibling = removedNode.previousSibling
         }
 
-        if (
-            previousSibling &&
-            previousSibling.lastChild &&
-            removedNodes.includes(previousSibling.lastChild)
-        ) {
-            previousSibling.appendChild(removedNode)
-        } else {
-            const marker = document.createElement('DEL')
-            marker.classList.add(removedClass)
-            parentNode.insertBefore(marker, removedNode)
-            marker.appendChild(removedNode)
-        }
+        wrapNode(removedNode, 'DEL', removedClass, invalidMarkerParents)
     }
 
     // Mark up the content which has been added.
     for (addedNode of addedNodes) {
-        const parentNode = addedNode.parentNode as Node
-        const previousSibling = addedNode.previousSibling
-
-        if (
-            previousSibling &&
-            previousSibling.lastChild &&
-            addedNodes.includes(previousSibling.lastChild)
-        ) {
-            previousSibling.appendChild(addedNode)
-        } else {
-            const marker = document.createElement('INS')
-            marker.classList.add(addedClass)
-            parentNode.insertBefore(marker, addedNode)
-            marker.appendChild(addedNode)
-        }
+        wrapNode(addedNode, 'INS', addedClass, invalidMarkerParents)
     }
 
     // Mark up the content which has been modified.
     if (!config.skipModified) {
         for (const modifiedNode of modifiedNodes) {
-            const parentNode = modifiedNode.parentNode as Node
-            const previousSibling = modifiedNode.previousSibling
-
-            if (
-                previousSibling &&
-                previousSibling.lastChild &&
-                modifiedNodes.includes(previousSibling.lastChild)
-            ) {
-                previousSibling.appendChild(modifiedNode)
-            } else {
-                const marker = document.createElement('INS')
-                marker.classList.add(modifiedClass)
-                parentNode.insertBefore(marker, modifiedNode)
-                marker.appendChild(modifiedNode)
-            }
+            wrapNode(modifiedNode, 'INS', modifiedClass, invalidMarkerParents)
         }
     }
 

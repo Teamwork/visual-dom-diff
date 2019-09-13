@@ -1,3 +1,7 @@
+# 0.5.2
+
+- Avoid adding change markers at invalid locations.
+
 # 0.5.1
 
 - Fix identical document structure sometimes marked up as changed.

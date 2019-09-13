@@ -276,3 +276,32 @@ function pushAll<T>(array: T[], items: T[]): void {
         array[destination++] = items[source++]
     }
 }
+
+export function wrapNode(
+    node: Node,
+    wrapperName: string,
+    wrapperClass: string,
+    invalidParentNames: Set<string>
+): void {
+    const document = node.ownerDocument!
+    const parentNode = node.parentNode!
+    const previousSibling = node.previousSibling
+
+    if (
+        previousSibling &&
+        previousSibling.nodeName === wrapperName &&
+        (previousSibling as Element).classList.contains(wrapperClass)
+    ) {
+        previousSibling.appendChild(node)
+    } else if (invalidParentNames.has(parentNode.nodeName)) {
+        const childNodes = Array.prototype.slice.call(node.childNodes)
+        for (const childNode of childNodes) {
+            wrapNode(childNode, wrapperName, wrapperClass, invalidParentNames)
+        }
+    } else {
+        const wrapper = document.createElement(wrapperName)
+        wrapper.classList.add(wrapperClass)
+        parentNode.insertBefore(wrapper, node)
+        wrapper.appendChild(node)
+    }
+}
