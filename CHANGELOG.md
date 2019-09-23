@@ -1,6 +1,7 @@
 # 0.6.0
 
-BREAKING CHANGE: Mark up the added and removed elements by adding the `vdd-added` and `vdd-removed` classes to the affected elements, instead of using the `<INS>` and `<DEL>` wrappers. Text and formatting changes still use the `<INS>` and `<DEL>` wrappers.
+- BREAKING CHANGE: Mark up the added and removed elements by adding the `vdd-added` and `vdd-removed` classes to the affected elements, instead of using the `<INS>` and `<DEL>` wrappers. Text and formatting changes still use the `<INS>` and `<DEL>` wrappers.
+- Fix invalid characters sometimes appearing in diff results.
 
 # 0.5.2
 
@@ -20,14 +21,12 @@ BREAKING CHANGE: Mark up the added and removed elements by adding the `vdd-added
 
 # 0.3.0
 
-BREAKING CHANGE: The `compareNodes` option is no longer supported.
-
+- BREAKING CHANGE: The `compareNodes` option is no longer supported.
 - Improve the diff output quality.
 
 # 0.2.0
 
-BREAKING CHANGE: The `ignoreCase` option is no longer supported.
-
+- BREAKING CHANGE: The `ignoreCase` option is no longer supported.
 - Use the `diff-match-patch` instead of the `diff` module to improve performance.
 
 # 0.1.3
@@ -44,4 +43,4 @@ BREAKING CHANGE: The `ignoreCase` option is no longer supported.
 
 # 0.1.0
 
-Initial release.
+- Initial release.

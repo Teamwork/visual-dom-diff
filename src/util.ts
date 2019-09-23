@@ -174,8 +174,8 @@ export function cleanUpNodeMarkers(diff: Diff[]): void {
         const diff2 = diff[i + 2]
 
         if (
-            diff0[0] !== DIFF_EQUAL &&
-            diff1[0] === DIFF_EQUAL &&
+            diff0[0] !== DIFF_EQUAL ||
+            diff1[0] === DIFF_EQUAL ||
             diff2[0] !== DIFF_EQUAL
         ) {
             i++

@@ -483,6 +483,20 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         ),
         '<table><thead><tr><th>wqdwqd</th><th>qwdwqd</th><th>wqdwqd</th></tr></thead><tbody><tr><td> qwdwqd</td><td> qwdwqd</td><td><del class="vdd-removed"> </del><br class="vdd-added"></td></tr><tr><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td> replaced</td><td> aXAXa</td></tr><tr><td> added</td><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><del class="vdd-removed"> </del><br class="vdd-added"></td></tr><tr><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><strong>wqdwqdwd</strong></td></tr></tbody></table>',
         undefined
+    ],
+    [
+        'add a paragraph between other paragraphs',
+        htmlToFragment('<p>123</p><p>789</p>'),
+        htmlToFragment('<p>123</p><p>456</p><p>789</p>'),
+        '<p>123</p><p class="vdd-added">456</p><p>789</p>',
+        undefined
+    ],
+    [
+        'remove a paragraph between other paragraphs',
+        htmlToFragment('<p>123</p><p>456</p><p>789</p>'),
+        htmlToFragment('<p>123</p><p>789</p>'),
+        '<p>123</p><p class="vdd-removed">456</p><p>789</p>',
+        undefined
     ]
 ])(
     '%s',
