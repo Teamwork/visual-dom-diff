@@ -1,10 +1,5 @@
 import { DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
-import {
-    Config,
-    invalidMarkerParents,
-    Options,
-    optionsToConfig
-} from './config'
+import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
     areNodesEqual,
@@ -13,8 +8,8 @@ import {
     getAncestors,
     isElement,
     isText,
-    never,
-    wrapNode
+    markUpNode,
+    never
 } from './util'
 
 /**
@@ -326,29 +321,31 @@ export function visualDomDiff(
         }
     }
 
-    // Mark up the content which has been removed.
+    // Move deletes before inserts.
     for (removedNode of removedNodes) {
         const parentNode = removedNode.parentNode as Node
         let previousSibling = removedNode.previousSibling
 
-        // Move the delete before inserts.
         while (previousSibling && addedNodes.includes(previousSibling)) {
             parentNode.insertBefore(removedNode, previousSibling)
             previousSibling = removedNode.previousSibling
         }
+    }
 
-        wrapNode(removedNode, 'DEL', removedClass, invalidMarkerParents)
+    // Mark up the content which has been removed.
+    for (removedNode of removedNodes) {
+        markUpNode(removedNode, 'DEL', removedClass)
     }
 
     // Mark up the content which has been added.
     for (addedNode of addedNodes) {
-        wrapNode(addedNode, 'INS', addedClass, invalidMarkerParents)
+        markUpNode(addedNode, 'INS', addedClass)
     }
 
     // Mark up the content which has been modified.
     if (!config.skipModified) {
         for (const modifiedNode of modifiedNodes) {
-            wrapNode(modifiedNode, 'INS', modifiedClass, invalidMarkerParents)
+            markUpNode(modifiedNode, 'INS', modifiedClass)
         }
     }
 

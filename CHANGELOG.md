@@ -1,3 +1,7 @@
+# 0.6.0
+
+BREAKING CHANGE: Mark up the added and removed elements by adding the `vdd-added` and `vdd-removed` classes to the affected elements, instead of using the `<INS>` and `<DEL>` wrappers. Text and formatting changes still use the `<INS>` and `<DEL>` wrappers.
+
 # 0.5.2
 
 - Avoid adding change markers at invalid locations.

@@ -136,18 +136,3 @@ export function optionsToConfig({
         }
     }
 }
-
-/**
- * The names of HTML elements which are not valid parents for the
- * INS and DEL elements used for marking up content differences.
- */
-export const invalidMarkerParents = new Set([
-    'TABLE',
-    'THEAD',
-    'TBODY',
-    'TFOOT',
-    'TR',
-    'UL',
-    'OL',
-    'DL'
-])

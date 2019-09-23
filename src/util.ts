@@ -277,30 +277,26 @@ function pushAll<T>(array: T[], items: T[]): void {
     }
 }
 
-export function wrapNode(
+export function markUpNode(
     node: Node,
-    wrapperName: string,
-    wrapperClass: string,
-    invalidParentNames: Set<string>
+    elementName: string,
+    className: string
 ): void {
     const document = node.ownerDocument!
     const parentNode = node.parentNode!
     const previousSibling = node.previousSibling
 
-    if (
+    if (isElement(node)) {
+        node.classList.add(className)
+    } else if (
         previousSibling &&
-        previousSibling.nodeName === wrapperName &&
-        (previousSibling as Element).classList.contains(wrapperClass)
+        previousSibling.nodeName === elementName &&
+        (previousSibling as Element).classList.contains(className)
     ) {
         previousSibling.appendChild(node)
-    } else if (invalidParentNames.has(parentNode.nodeName)) {
-        const childNodes = Array.prototype.slice.call(node.childNodes)
-        for (const childNode of childNodes) {
-            wrapNode(childNode, wrapperName, wrapperClass, invalidParentNames)
-        }
     } else {
-        const wrapper = document.createElement(wrapperName)
-        wrapper.classList.add(wrapperClass)
+        const wrapper = document.createElement(elementName)
+        wrapper.classList.add(className)
         parentNode.insertBefore(wrapper, node)
         wrapper.appendChild(node)
     }
