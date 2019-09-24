@@ -1,6 +1,7 @@
 # 0.6.0
 
 - BREAKING CHANGE: Mark up the added and removed elements by adding the `vdd-added` and `vdd-removed` classes to the affected elements, instead of using the `<INS>` and `<DEL>` wrappers. Text and formatting changes still use the `<INS>` and `<DEL>` wrappers.
+- BREAKING CHANGE: Mark up structural elements (P, TABLE, DIV, etc) with modified attributes by adding the `vdd-modified` class to the affected elements, instead of outputting 2 elements with `vdd-added` and `vdd-removed` classes. Attribute changes on content elements (eg. IMG, IFRAME, SVG, etc) still output 2 elements with the `vdd-added` and `vdd-removed` classes. Formatting elements (eg STRONG, EM, etc) are unafected by this change.
 - Fix invalid characters sometimes appearing in diff results.
 
 # 0.5.2

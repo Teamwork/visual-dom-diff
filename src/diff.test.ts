@@ -358,6 +358,20 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined
     ],
     [
+        'differing paragraph attribute - the same text diff',
+        htmlToFragment('<p data-value="old">test</p>'),
+        htmlToFragment('<p data-value="new">test</p>'),
+        '<p data-value="new" class="vdd-modified">test</p>',
+        undefined
+    ],
+    [
+        'differing paragraph attribute - different text diff',
+        htmlToFragment('<p data-value="old">test</p>'),
+        htmlToFragment('<p data-value="new">hello</p>'),
+        '<p data-value="new" class="vdd-modified"><del class="vdd-removed">test</del><ins class="vdd-added">hello</ins></p>',
+        undefined
+    ],
+    [
         'multiple spaces between words',
         htmlToFragment('prefix  suffix'),
         htmlToFragment('prefix   suffix'),
@@ -450,12 +464,12 @@ test.each<[string, Node, Node, string, Options | undefined]>([
     [
         'changes with skipModified === true',
         htmlToFragment(
-            '<p>prefix <strong>modified</strong> old suffix removed</p><img src="image.png">'
+            '<p>prefix <strong>modified</strong> old suffix removed</p><img src="image.png"><p data-value="old">test</p>'
         ),
         htmlToFragment(
-            '<p>added prefix <em><u>modified</u></em> new suffix</p><img src="image.jpg">'
+            '<p>added prefix <em><u>modified</u></em> new suffix</p><img src="image.jpg"><p data-value="new">test</p>'
         ),
-        '<p><ins class="vdd-added">added </ins>prefix <em><u>modified</u></em> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p><img src="image.png" class="vdd-removed"><img src="image.jpg" class="vdd-added">',
+        '<p><ins class="vdd-added">added </ins>prefix <em><u>modified</u></em> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p><img src="image.png" class="vdd-removed"><img src="image.jpg" class="vdd-added"><p data-value="new">test</p>',
         {
             skipModified: true
         }
@@ -463,12 +477,12 @@ test.each<[string, Node, Node, string, Options | undefined]>([
     [
         'changes with skipModified === false',
         htmlToFragment(
-            '<p>prefix <strong>modified</strong> old suffix removed</p><img src="image.png">'
+            '<p>prefix <strong>modified</strong> old suffix removed</p><img src="image.png"><p data-value="old">test</p>'
         ),
         htmlToFragment(
-            '<p>added prefix <em><u>modified</u></em> new suffix</p><img src="image.jpg">'
+            '<p>added prefix <em><u>modified</u></em> new suffix</p><img src="image.jpg"><p data-value="new">test</p>'
         ),
-        '<p><ins class="vdd-added">added </ins>prefix <ins class="vdd-modified"><em><u>modified</u></em></ins> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p><img src="image.png" class="vdd-removed"><img src="image.jpg" class="vdd-added">',
+        '<p><ins class="vdd-added">added </ins>prefix <ins class="vdd-modified"><em><u>modified</u></em></ins> <del class="vdd-removed">old</del><ins class="vdd-added">new</ins> suffix<del class="vdd-removed"> removed</del></p><img src="image.png" class="vdd-removed"><img src="image.jpg" class="vdd-added"><p data-value="new" class="vdd-modified">test</p>',
         {
             skipModified: false
         }

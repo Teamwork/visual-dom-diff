@@ -1,4 +1,4 @@
-import { DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
+import { Diff, DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
 import { Config, Options, optionsToConfig } from './config'
 import { DomIterator } from './domIterator'
 import {
@@ -34,7 +34,13 @@ export function visualDomDiff(
 ): DocumentFragment {
     // Define config and simple helpers.
     const config = optionsToConfig(options)
-    const { addedClass, modifiedClass, removedClass, skipSelf } = config
+    const {
+        addedClass,
+        modifiedClass,
+        removedClass,
+        skipSelf,
+        skipChildren
+    } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
         getAncestors(node, rootNode).filter(notSkipSelf).length
@@ -54,12 +60,18 @@ export function visualDomDiff(
     const newIterator = new DomIterator(newRootNode, config)
 
     // Input variables produced by the input iterators.
-    let { done: diffDone, value: diffItem } = diffIterator.next()
-    let { done: oldDone, value: oldNode } = oldIterator.next()
-    let { done: newDone, value: newNode } = newIterator.next()
+    let diffDone: boolean | undefined
+    let oldDone: boolean | undefined
+    let newDone: boolean | undefined
+    let diffItem: Diff
+    let oldNode: Node
+    let newNode: Node
     let diffOffset = 0
     let oldOffset = 0
     let newOffset = 0
+    ;({ done: diffDone, value: diffItem } = diffIterator.next())
+    ;({ done: oldDone, value: oldNode } = oldIterator.next())
+    ;({ done: newDone, value: newNode } = newIterator.next())
 
     // Output variables.
     const document = newRootNode.ownerDocument || (newRootNode as Document)
@@ -70,9 +82,9 @@ export function visualDomDiff(
     let newOutputDepth = 0
     let removedNode: Node | null = null
     let addedNode: Node | null = null
-    const removedNodes = new Array<Node>()
-    const addedNodes = new Array<Node>()
-    const modifiedNodes = new Array<Node>()
+    const removedNodes = new Set<Node>()
+    const addedNodes = new Set<Node>()
+    const modifiedNodes = new Set<Node>()
     const formattingMap = new Map<Node, Node[]>()
 
     function prepareOldOutput(): void {
@@ -115,9 +127,7 @@ export function visualDomDiff(
         }
     }
 
-    function appendChild(node: Node): void {
-        let nodeModified = false
-
+    function appendCommonChild(node: Node): void {
         /* istanbul ignore if */
         if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
             return never()
@@ -130,19 +140,17 @@ export function visualDomDiff(
 
             const length = oldFormatting.length
             if (length !== newFormatting.length) {
-                nodeModified = true
+                modifiedNodes.add(node)
             } else {
                 for (let i = 0; i < length; ++i) {
                     if (!areNodesEqual(oldFormatting[i], newFormatting[i])) {
-                        nodeModified = true
+                        modifiedNodes.add(node)
                         break
                     }
                 }
             }
-        }
-
-        if (nodeModified) {
-            modifiedNodes.push(node)
+        } else if (!areNodesEqual(oldNode, newNode)) {
+            modifiedNodes.add(node)
         }
 
         newOutputNode.appendChild(node)
@@ -155,7 +163,7 @@ export function visualDomDiff(
     function appendOldChild(node: Node): void {
         if (!removedNode) {
             removedNode = node
-            removedNodes.push(node)
+            removedNodes.add(node)
         }
 
         if (isText(node)) {
@@ -171,7 +179,7 @@ export function visualDomDiff(
     function appendNewChild(node: Node): void {
         if (!addedNode) {
             addedNode = node
-            addedNodes.push(node)
+            addedNodes.add(node)
         }
 
         if (isText(node)) {
@@ -290,18 +298,18 @@ export function visualDomDiff(
             )
             const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
-            if (isText(oldNode) && isText(newNode)) {
-                if (oldOutputNode === newOutputNode) {
-                    appendChild(document.createTextNode(text))
-                } else {
-                    appendOldChild(document.createTextNode(text))
-                    appendNewChild(document.createTextNode(text))
-                }
-            } else if (
+            if (
                 oldOutputNode === newOutputNode &&
-                areNodesEqual(oldNode, newNode)
+                oldNode.nodeName === newNode.nodeName &&
+                (isText(newNode) ||
+                    !skipChildren(newNode) ||
+                    areNodesEqual(oldNode, newNode))
             ) {
-                appendChild(newNode.cloneNode(false))
+                appendCommonChild(
+                    isText(newNode)
+                        ? document.createTextNode(text)
+                        : newNode.cloneNode(false)
+                )
             } else {
                 appendOldChild(
                     isText(oldNode)
@@ -326,7 +334,7 @@ export function visualDomDiff(
         const parentNode = removedNode.parentNode as Node
         let previousSibling = removedNode.previousSibling
 
-        while (previousSibling && addedNodes.includes(previousSibling)) {
+        while (previousSibling && addedNodes.has(previousSibling)) {
             parentNode.insertBefore(removedNode, previousSibling)
             previousSibling = removedNode.previousSibling
         }
