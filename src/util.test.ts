@@ -12,7 +12,7 @@ import {
     isDocumentFragment,
     isElement,
     isText,
-    never
+    never,
 } from './util'
 
 const text = document.createTextNode('text')
@@ -156,19 +156,19 @@ describe('areArraysEqual', () => {
         })
         test('identical nodes', () => {
             expect(areArraysEqual([text, text], [text, identicalText])).toBe(
-                false
+                false,
             )
         })
         test('different nodes', () => {
             expect(areArraysEqual([text, text], [text, differentText])).toBe(
-                false
+                false,
             )
         })
     })
     describe('node comparator', () => {
         test('the same nodes', () => {
             expect(
-                areArraysEqual([text, text], [text, text], areNodesEqual)
+                areArraysEqual([text, text], [text, text], areNodesEqual),
             ).toBe(true)
         })
         test('identical nodes', () => {
@@ -176,8 +176,8 @@ describe('areArraysEqual', () => {
                 areArraysEqual(
                     [text, text],
                     [text, identicalText],
-                    areNodesEqual
-                )
+                    areNodesEqual,
+                ),
             ).toBe(true)
         })
         test('different nodes', () => {
@@ -185,8 +185,8 @@ describe('areArraysEqual', () => {
                 areArraysEqual(
                     [text, text],
                     [text, differentText],
-                    areNodesEqual
-                )
+                    areNodesEqual,
+                ),
             ).toBe(false)
         })
     })
@@ -220,7 +220,7 @@ describe('areNodesEqual', () => {
         })
         test('elements with different attribute values', () => {
             expect(areNodesEqual(span, differentAttributeValuesSpan)).toBe(
-                false
+                false,
             )
         })
         test('elements with different childNodes', () => {
@@ -249,18 +249,22 @@ describe('areNodesEqual', () => {
                 areNodesEqual(
                     rootNode.cloneNode(true),
                     rootNode.cloneNode(true),
-                    true
-                )
+                    true,
+                ),
             ).toBe(true)
         })
         test('extraneous child', () => {
             const differentRootNode = rootNode.cloneNode(true)
             ;((differentRootNode.lastChild as Node)
                 .lastChild as Node).appendChild(
-                document.createTextNode('different')
+                document.createTextNode('different'),
             )
             expect(
-                areNodesEqual(rootNode.cloneNode(true), differentRootNode, true)
+                areNodesEqual(
+                    rootNode.cloneNode(true),
+                    differentRootNode,
+                    true,
+                ),
             ).toBe(false)
         })
         test('child with a different attribute', () => {
@@ -268,7 +272,11 @@ describe('areNodesEqual', () => {
             ;((differentRootNode.lastChild as Node)
                 .lastChild as Element).setAttribute('data-a', 'a')
             expect(
-                areNodesEqual(rootNode.cloneNode(true), differentRootNode, true)
+                areNodesEqual(
+                    rootNode.cloneNode(true),
+                    differentRootNode,
+                    true,
+                ),
             ).toBe(false)
         })
     })
@@ -297,7 +305,7 @@ describe('getAncestors', () => {
         [node3, node2, [node2]],
         [node1, node3, []],
         [node2, node3, [node1]],
-        [node3, node3, []]
+        [node3, node3, []],
     ]
 
     testData.forEach(([node, rootNode, ancestors]) => {
@@ -311,7 +319,7 @@ describe('getAncestors', () => {
 describe('never', () => {
     test('default message', () => {
         expect(() => never()).toThrowError(
-            'visual-dom-diff: Should never happen'
+            'visual-dom-diff: Should never happen',
         )
     })
     test('custom message', () => {
@@ -336,28 +344,28 @@ describe('diffText', () => {
         expect(diffText('test', 'Test')).toStrictEqual([
             [DIFF_DELETE, 't'],
             [DIFF_INSERT, 'T'],
-            [DIFF_EQUAL, 'est']
+            [DIFF_EQUAL, 'est'],
         ])
     })
     test('different whitespace', () => {
         expect(diffText('start  end', 'start     end')).toStrictEqual([
             [DIFF_EQUAL, 'start  '],
             [DIFF_INSERT, '   '],
-            [DIFF_EQUAL, 'end']
+            [DIFF_EQUAL, 'end'],
         ])
     })
     test('word added', () => {
         expect(diffText('start end', 'start add end')).toStrictEqual([
             [DIFF_EQUAL, 'start '],
             [DIFF_INSERT, 'add '],
-            [DIFF_EQUAL, 'end']
+            [DIFF_EQUAL, 'end'],
         ])
     })
     test('word removed', () => {
         expect(diffText('start remove end', 'start end')).toStrictEqual([
             [DIFF_EQUAL, 'start '],
             [DIFF_DELETE, 'remove '],
-            [DIFF_EQUAL, 'end']
+            [DIFF_EQUAL, 'end'],
         ])
     })
     test('word replaced', () => {
@@ -365,85 +373,88 @@ describe('diffText', () => {
             [DIFF_EQUAL, 'start '],
             [DIFF_DELETE, 'remove'],
             [DIFF_INSERT, 'add'],
-            [DIFF_EQUAL, ' end']
+            [DIFF_EQUAL, ' end'],
         ])
     })
     test('word added with a node marker', () => {
         expect(
             diffText(
                 `${pChar}start${pChar}end`,
-                `${pChar}start${pChar}add${pChar}end`
-            )
+                `${pChar}start${pChar}add${pChar}end`,
+            ),
         ).toStrictEqual([
             [DIFF_EQUAL, `${pChar}start`],
             [DIFF_INSERT, `${pChar}add`],
-            [DIFF_EQUAL, `${pChar}end`]
+            [DIFF_EQUAL, `${pChar}end`],
         ])
     })
     test('word removed with a node marker', () => {
         expect(
             diffText(
                 `${pChar}start${pChar}remove${pChar}end`,
-                `${pChar}start${pChar}end`
-            )
+                `${pChar}start${pChar}end`,
+            ),
         ).toStrictEqual([
             [DIFF_EQUAL, `${pChar}start`],
             [DIFF_DELETE, `${pChar}remove`],
-            [DIFF_EQUAL, `${pChar}end`]
+            [DIFF_EQUAL, `${pChar}end`],
         ])
     })
     test('word replaced in text with node markers', () => {
         expect(
             diffText(
                 `${pChar}start${pChar}remove${pChar}end`,
-                `${pChar}start${pChar}add${pChar}end`
-            )
+                `${pChar}start${pChar}add${pChar}end`,
+            ),
         ).toStrictEqual([
             [DIFF_EQUAL, `${pChar}start${pChar}`],
             [DIFF_DELETE, 'remove'],
             [DIFF_INSERT, 'add'],
-            [DIFF_EQUAL, `${pChar}end`]
+            [DIFF_EQUAL, `${pChar}end`],
         ])
     })
     test('semantic diff', () => {
         expect(diffText('mouse', 'sofas')).toStrictEqual([
             [DIFF_DELETE, 'mouse'],
-            [DIFF_INSERT, 'sofas']
+            [DIFF_INSERT, 'sofas'],
         ])
     })
     describe('skip node markers when running diff_cleanupSemantic', () => {
         test('equal node markers only', () => {
             expect(
-                diffText('\uE000\uE001\uE002\uE003', '\uE000\uE001\uE002\uE003')
+                diffText(
+                    '\uE000\uE001\uE002\uE003',
+                    '\uE000\uE001\uE002\uE003',
+                ),
             ).toStrictEqual([[DIFF_EQUAL, '\uE000\uE001\uE002\uE003']])
         })
         test('equal node markers with prefix', () => {
             expect(
                 diffText(
                     'a\uE000\uE001\uE002\uE003',
-                    'a\uE000\uE001\uE002\uE003'
-                )
+                    'a\uE000\uE001\uE002\uE003',
+                ),
             ).toStrictEqual([[DIFF_EQUAL, 'a\uE000\uE001\uE002\uE003']])
         })
         test('equal node markers with suffix', () => {
             expect(
                 diffText(
                     '\uE000\uE001\uE002\uE003z',
-                    '\uE000\uE001\uE002\uE003z'
-                )
+                    '\uE000\uE001\uE002\uE003z',
+                ),
             ).toStrictEqual([[DIFF_EQUAL, '\uE000\uE001\uE002\uE003z']])
         })
         test('equal node markers with prefix and suffix', () => {
             expect(
                 diffText(
                     'a\uE000\uE001\uE002\uE003z',
-                    'a\uE000\uE001\uE002\uE003z'
-                )
+                    'a\uE000\uE001\uE002\uE003z',
+                ),
             ).toStrictEqual([[DIFF_EQUAL, 'a\uE000\uE001\uE002\uE003z']])
         })
         test('equal prefix only', () => {
             expect(diffText('prefix', 'prefix')).toStrictEqual([
-                [DIFF_EQUAL, 'prefix']
+                [DIFF_EQUAL, 'prefix'],
             ])
         })
         test('changed letter within text', () => {
@@ -451,34 +462,34 @@ describe('diffText', () => {
                 [DIFF_EQUAL, 'prefix'],
                 [DIFF_DELETE, 'A'],
                 [DIFF_INSERT, 'B'],
-                [DIFF_EQUAL, 'suffix']
+                [DIFF_EQUAL, 'suffix'],
             ])
         })
         test('changed node within text', () => {
             expect(
-                diffText('prefix\uE000suffix', 'prefix\uE001suffix')
+                diffText('prefix\uE000suffix', 'prefix\uE001suffix'),
             ).toStrictEqual([
                 [DIFF_EQUAL, 'prefix'],
                 [DIFF_DELETE, '\uE000'],
                 [DIFF_INSERT, '\uE001'],
-                [DIFF_EQUAL, 'suffix']
+                [DIFF_EQUAL, 'suffix'],
             ])
         })
         test('multiple changed letters around equal letter', () => {
             expect(diffText('abc!def', '123!456')).toStrictEqual([
                 [DIFF_DELETE, 'abc!def'],
-                [DIFF_INSERT, '123!456']
+                [DIFF_INSERT, '123!456'],
             ])
         })
         test('multiple changed node markers around equal letter', () => {
             expect(
                 diffText(
                     '\uE000\uE001\uE002!\uE003\uE004\uE005',
-                    '\uE006\uE007\uE008!\uE009\uE00A\uE00B'
-                )
+                    '\uE006\uE007\uE008!\uE009\uE00A\uE00B',
+                ),
             ).toStrictEqual([
                 [DIFF_DELETE, '\uE000\uE001\uE002!\uE003\uE004\uE005'],
-                [DIFF_INSERT, '\uE006\uE007\uE008!\uE009\uE00A\uE00B']
+                [DIFF_INSERT, '\uE006\uE007\uE008!\uE009\uE00A\uE00B'],
             ])
         })
         test('multiple changed letters around equal node marker', () => {
@@ -487,21 +498,21 @@ describe('diffText', () => {
                 [DIFF_INSERT, '123'],
                 [DIFF_EQUAL, '\uE000'],
                 [DIFF_DELETE, 'def'],
-                [DIFF_INSERT, '456']
+                [DIFF_INSERT, '456'],
             ])
         })
         test('multiple changed node markers around equal node marker', () => {
             expect(
                 diffText(
                     '\uE000\uE001\uE002\uF000\uE003\uE004\uE005',
-                    '\uE006\uE007\uE008\uF000\uE009\uE00A\uE00B'
-                )
+                    '\uE006\uE007\uE008\uF000\uE009\uE00A\uE00B',
+                ),
             ).toStrictEqual([
                 [DIFF_DELETE, '\uE000\uE001\uE002'],
                 [DIFF_INSERT, '\uE006\uE007\uE008'],
                 [DIFF_EQUAL, '\uF000'],
                 [DIFF_DELETE, '\uE003\uE004\uE005'],
-                [DIFF_INSERT, '\uE009\uE00A\uE00B']
+                [DIFF_INSERT, '\uE009\uE00A\uE00B'],
             ])
         })
         test.each<string>([
@@ -510,37 +521,37 @@ describe('diffText', () => {
             '\uDFFF',
             '\uF900',
             '\uFFFF',
-            '\uDFFF\uF900'
+            '\uDFFF\uF900',
         ])(
             'identical text without node markers inside changed text (%#)',
             string => {
                 expect(
-                    diffText(`abcdef${string}ghijkl`, `123456${string}7890-=`)
+                    diffText(`abcdef${string}ghijkl`, `123456${string}7890-=`),
                 ).toStrictEqual([
                     [DIFF_DELETE, `abcdef${string}ghijkl`],
-                    [DIFF_INSERT, `123456${string}7890-=`]
+                    [DIFF_INSERT, `123456${string}7890-=`],
                 ])
-            }
+            },
         )
         test.each<string>([
             '\uE000',
             '\uEFEF',
             '\uF8FF',
             '\uE000\uF8FF',
-            '\uE000!\uF8FF'
+            '\uE000!\uF8FF',
         ])(
             'identical text with node markers inside changed text (%#)',
             string => {
                 expect(
-                    diffText(`abcdef${string}ghijkl`, `123456${string}7890-=`)
+                    diffText(`abcdef${string}ghijkl`, `123456${string}7890-=`),
                 ).toStrictEqual([
                     [DIFF_DELETE, 'abcdef'],
                     [DIFF_INSERT, '123456'],
                     [DIFF_EQUAL, string],
                     [DIFF_DELETE, 'ghijkl'],
-                    [DIFF_INSERT, '7890-=']
+                    [DIFF_INSERT, '7890-='],
                 ])
-            }
+            },
         )
     })
 })
@@ -550,7 +561,7 @@ describe('cleanUpNodeMarkers', () => {
         const diff: Diff[] = [
             [DIFF_EQUAL, `abc${pChar}${ulChar}${liChar}${liChar}`],
             [DIFF_DELETE, `${pChar}${ulChar}${liChar}${liChar}`],
-            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`]
+            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`],
         ]
         cleanUpNodeMarkers(diff)
         expect(diff).toStrictEqual([
@@ -558,15 +569,15 @@ describe('cleanUpNodeMarkers', () => {
             [DIFF_DELETE, `${pChar}${ulChar}${liChar}${liChar}`],
             [
                 DIFF_EQUAL,
-                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`
-            ]
+                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`,
+            ],
         ])
     })
     test('cleans up multiple node markers in insert', () => {
         const diff: Diff[] = [
             [DIFF_EQUAL, `abc${pChar}${ulChar}${liChar}${liChar}`],
             [DIFF_INSERT, `${pChar}${ulChar}${liChar}${liChar}`],
-            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`]
+            [DIFF_EQUAL, `${pChar}${ulChar}${liChar}${liChar}xyz`],
         ]
         cleanUpNodeMarkers(diff)
         expect(diff).toStrictEqual([
@@ -574,32 +585,32 @@ describe('cleanUpNodeMarkers', () => {
             [DIFF_INSERT, `${pChar}${ulChar}${liChar}${liChar}`],
             [
                 DIFF_EQUAL,
-                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`
-            ]
+                `${pChar}${ulChar}${liChar}${liChar}${pChar}${ulChar}${liChar}${liChar}xyz`,
+            ],
         ])
     })
     test('cleans up a node marker in delete and removes a redundant diff item', () => {
         const diff: Diff[] = [
             [DIFF_EQUAL, `${pChar}`],
             [DIFF_DELETE, `abc${pChar}`],
-            [DIFF_EQUAL, `${pChar}xyz`]
+            [DIFF_EQUAL, `${pChar}xyz`],
         ]
         cleanUpNodeMarkers(diff)
         expect(diff).toStrictEqual([
             [DIFF_DELETE, `${pChar}abc`],
-            [DIFF_EQUAL, `${pChar}${pChar}xyz`]
+            [DIFF_EQUAL, `${pChar}${pChar}xyz`],
         ])
     })
     test('cleans up a node marker in insert and removes a redundant diff item', () => {
         const diff: Diff[] = [
             [DIFF_EQUAL, `${pChar}`],
             [DIFF_INSERT, `abc${pChar}`],
-            [DIFF_EQUAL, `${pChar}xyz`]
+            [DIFF_EQUAL, `${pChar}xyz`],
         ]
         cleanUpNodeMarkers(diff)
         expect(diff).toStrictEqual([
             [DIFF_INSERT, `${pChar}abc`],
-            [DIFF_EQUAL, `${pChar}${pChar}xyz`]
+            [DIFF_EQUAL, `${pChar}${pChar}xyz`],
         ])
     })
 })

@@ -32,7 +32,7 @@ export function strictEqual<T>(item1: T, item2: T): boolean {
 export function areArraysEqual<T>(
     array1: T[],
     array2: T[],
-    comparator: Comparator<T> = strictEqual
+    comparator: Comparator<T> = strictEqual,
 ): boolean {
     if (array1.length !== array2.length) {
         return false
@@ -57,7 +57,7 @@ export function areArraysEqual<T>(
 export function areNodesEqual(
     node1: Node,
     node2: Node,
-    deep: boolean = false
+    deep: boolean = false,
 ): boolean {
     if (node1 === node2) {
         return true
@@ -138,7 +138,7 @@ export function getAncestors(node: Node, rootNode: Node | null = null): Node[] {
 }
 
 export function never(
-    message: string = 'visual-dom-diff: Should never happen'
+    message: string = 'visual-dom-diff: Should never happen',
 ): never {
     throw new Error(message)
 }
@@ -159,7 +159,7 @@ export function hashCode(str: string): number {
  */
 export function charForNodeName(nodeName: string): string {
     return String.fromCharCode(
-        0xe000 + (hashCode(nodeName) % (0xf900 - 0xe000))
+        0xe000 + (hashCode(nodeName) % (0xf900 - 0xe000)),
     )
 }
 
@@ -241,13 +241,13 @@ export function diffText(text1: string, text2: string): Diff[] {
 
                 result.push([
                     DIFF_EQUAL,
-                    text.substring(prefixLength, totalLength - suffixLength)
+                    text.substring(prefixLength, totalLength - suffixLength),
                 ])
 
                 if (suffixLength > 0) {
                     temp.push([
                         DIFF_EQUAL,
-                        text.substring(totalLength - suffixLength)
+                        text.substring(totalLength - suffixLength),
                     ])
                 }
             } else {
@@ -280,7 +280,7 @@ function pushAll<T>(array: T[], items: T[]): void {
 export function markUpNode(
     node: Node,
     elementName: string,
-    className: string
+    className: string,
 ): void {
     const document = node.ownerDocument!
     const parentNode = node.parentNode!

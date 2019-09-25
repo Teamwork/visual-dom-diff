@@ -45,7 +45,7 @@ describe('skipChildren', () => {
                     : isDocumentFragment(node)
                     ? true
                     : undefined
-            }
+            },
         })
         test('return true given a text node', () => {
             expect(config.skipChildren(text)).toBe(true)
@@ -107,7 +107,7 @@ describe('skipSelf', () => {
                     : node.nodeName === 'VIDEO'
                     ? true
                     : undefined
-            }
+            },
         })
         test('return true given a text node', () => {
             expect(config.skipSelf(text)).toBe(true)
@@ -143,7 +143,7 @@ describe('simple options', () => {
             addedClass: 'ADDED',
             modifiedClass: 'MODIFIED',
             removedClass: 'REMOVED',
-            skipModified: true
+            skipModified: true,
         })
         expect(config.addedClass).toBe('ADDED')
         expect(config.modifiedClass).toBe('MODIFIED')

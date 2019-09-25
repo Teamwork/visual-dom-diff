@@ -11,7 +11,7 @@ export class DomIterator implements IterableIterator<Node> {
 
     public constructor(
         private rootNode: Node,
-        private config?: DomIteratorOptions
+        private config?: DomIteratorOptions,
     ) {
         this.nextNode = this.rootNode
         if (this.skipSelf(this.nextNode)) {

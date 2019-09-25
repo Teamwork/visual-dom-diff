@@ -5,7 +5,7 @@ import {
     isDocumentFragment,
     isElement,
     isText,
-    NodePredicate
+    NodePredicate,
 } from './util'
 
 /**
@@ -96,7 +96,7 @@ export function optionsToConfig({
     removedClass = 'vdd-removed',
     skipModified = false,
     skipChildren,
-    skipSelf
+    skipSelf,
 }: Options = {}): Config {
     return {
         addedClass,
@@ -133,6 +133,6 @@ export function optionsToConfig({
                 }
             }
             return skipSelfMap.has(node.nodeName)
-        }
+        },
     }
 }

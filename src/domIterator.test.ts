@@ -45,15 +45,15 @@ test('iterate many nodes', () => {
         text2b,
         img1,
         img2,
-        img3
+        img3,
     ])
 })
 
 test('skip some nodes', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipSelf: node => node.nodeName === 'TR'
-        })
+            skipSelf: node => node.nodeName === 'TR',
+        }),
     ]).toStrictEqual([
         fragment,
         table,
@@ -67,15 +67,15 @@ test('skip some nodes', () => {
         text2b,
         img1,
         img2,
-        img3
+        img3,
     ])
 })
 
 test('skip children of some nodes', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipChildren: node => node.nodeName === 'TR'
-        })
+            skipChildren: node => node.nodeName === 'TR',
+        }),
     ]).toStrictEqual([fragment, table, tr1, tr2, img1, img2, img3])
 })
 
@@ -83,16 +83,16 @@ test('skip some nodes and their children', () => {
     expect([
         ...new DomIterator(fragment, {
             skipChildren: node => node.nodeName === 'TR',
-            skipSelf: node => node.nodeName === 'TR'
-        })
+            skipSelf: node => node.nodeName === 'TR',
+        }),
     ]).toStrictEqual([fragment, table, img1, img2, img3])
 })
 
 test('skip the root node', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipSelf: node => node === fragment
-        })
+            skipSelf: node => node === fragment,
+        }),
     ]).toStrictEqual([
         table,
         tr1,
@@ -107,15 +107,15 @@ test('skip the root node', () => {
         text2b,
         img1,
         img2,
-        img3
+        img3,
     ])
 })
 
 test('skip the children of the root node', () => {
     expect([
         ...new DomIterator(fragment, {
-            skipChildren: node => node === fragment
-        })
+            skipChildren: node => node === fragment,
+        }),
     ]).toStrictEqual([fragment])
 })
 
@@ -123,8 +123,8 @@ test('skip the root node and its children', () => {
     expect([
         ...new DomIterator(fragment, {
             skipChildren: node => node === fragment,
-            skipSelf: node => node === fragment
-        })
+            skipSelf: node => node === fragment,
+        }),
     ]).toStrictEqual([])
 })
 
@@ -134,6 +134,6 @@ test('stay within root', () => {
         td1a,
         text1a,
         td1b,
-        text1b
+        text1b,
     ])
 })

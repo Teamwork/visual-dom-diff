@@ -9,7 +9,7 @@ import {
     isElement,
     isText,
     markUpNode,
-    never
+    never,
 } from './util'
 
 /**
@@ -31,7 +31,7 @@ const serialize = (root: Node, config: Config): string =>
             (isText(node)
                 ? node.data
                 : charForNodeName(nodeNameOverride(node.nodeName))),
-        ''
+        '',
     )
 
 const getLength = (node: Node): number => (isText(node) ? node.length : 1)
@@ -40,7 +40,7 @@ export { Options as VisualDomDiffOptions } from './config'
 export function visualDomDiff(
     oldRootNode: Node,
     newRootNode: Node,
-    options: Options = {}
+    options: Options = {},
 ): DocumentFragment {
     // Define config and simple helpers.
     const document = newRootNode.ownerDocument || (newRootNode as Document)
@@ -51,7 +51,7 @@ export function visualDomDiff(
         modifiedClass,
         removedClass,
         skipSelf,
-        skipChildren
+        skipChildren,
     } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
@@ -66,7 +66,7 @@ export function visualDomDiff(
     // Input iterators.
     const diffIterator = diffText(
         serialize(oldRootNode, config),
-        serialize(newRootNode, config)
+        serialize(newRootNode, config),
     )[Symbol.iterator]()
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)
@@ -173,7 +173,7 @@ export function visualDomDiff(
             equalRows.push({
                 newRow: newNode,
                 oldRow: oldNode,
-                outputRow: node
+                outputRow: node,
             })
         }
 
@@ -272,14 +272,14 @@ export function visualDomDiff(
 
             const length = Math.min(
                 diffItem[1].length - diffOffset,
-                getLength(oldNode) - oldOffset
+                getLength(oldNode) - oldOffset,
             )
             const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
             appendOldChild(
                 isText(oldNode)
                     ? document.createTextNode(text)
-                    : oldNode.cloneNode(false)
+                    : oldNode.cloneNode(false),
             )
 
             nextDiff(length)
@@ -294,14 +294,14 @@ export function visualDomDiff(
 
             const length = Math.min(
                 diffItem[1].length - diffOffset,
-                getLength(newNode) - newOffset
+                getLength(newNode) - newOffset,
             )
             const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
             appendNewChild(
                 isText(newNode)
                     ? document.createTextNode(text)
-                    : newNode.cloneNode(false)
+                    : newNode.cloneNode(false),
             )
 
             nextDiff(length)
@@ -318,7 +318,7 @@ export function visualDomDiff(
             const length = Math.min(
                 diffItem[1].length - diffOffset,
                 getLength(oldNode) - oldOffset,
-                getLength(newNode) - newOffset
+                getLength(newNode) - newOffset,
             )
             const text = diffItem[1].substring(diffOffset, diffOffset + length)
 
@@ -334,18 +334,18 @@ export function visualDomDiff(
                 appendCommonChild(
                     isText(newNode)
                         ? document.createTextNode(text)
-                        : newNode.cloneNode(false)
+                        : newNode.cloneNode(false),
                 )
             } else {
                 appendOldChild(
                     isText(oldNode)
                         ? document.createTextNode(text)
-                        : oldNode.cloneNode(false)
+                        : oldNode.cloneNode(false),
                 )
                 appendNewChild(
                     isText(newNode)
                         ? document.createTextNode(text)
-                        : newNode.cloneNode(false)
+                        : newNode.cloneNode(false),
                 )
             }
 
