@@ -13,6 +13,13 @@ import {
 } from './util'
 
 /**
+ * A simple helper which allows us to treat TH as TD in certain situations.
+ */
+const nodeNameOverride = (nodeName: string): string => {
+    return nodeName === 'TH' ? 'TD' : nodeName
+}
+
+/**
  * Stringifies a DOM node recursively. Text nodes are represented by their `data`,
  * while all other nodes are represented by a single Unicode code point
  * from the Private Use Area of the Basic Multilingual Plane.
@@ -20,7 +27,10 @@ import {
 const serialize = (root: Node, config: Config): string =>
     [...new DomIterator(root, config)].reduce(
         (text, node) =>
-            text + (isText(node) ? node.data : charForNodeName(node.nodeName)),
+            text +
+            (isText(node)
+                ? node.data
+                : charForNodeName(nodeNameOverride(node.nodeName))),
         ''
     )
 
@@ -33,6 +43,8 @@ export function visualDomDiff(
     options: Options = {}
 ): DocumentFragment {
     // Define config and simple helpers.
+    const document = newRootNode.ownerDocument || (newRootNode as Document)
+    const emptyTextNode = document.createTextNode('')
     const config = optionsToConfig(options)
     const {
         addedClass,
@@ -74,7 +86,6 @@ export function visualDomDiff(
     ;({ done: newDone, value: newNode } = newIterator.next())
 
     // Output variables.
-    const document = newRootNode.ownerDocument || (newRootNode as Document)
     const rootOutputNode = document.createDocumentFragment()
     let oldOutputNode: Node = rootOutputNode
     let oldOutputDepth = 0
@@ -86,6 +97,11 @@ export function visualDomDiff(
     const addedNodes = new Set<Node>()
     const modifiedNodes = new Set<Node>()
     const formattingMap = new Map<Node, Node[]>()
+    const equalRows = new Array<{
+        newRow: Node
+        oldRow: Node
+        outputRow: Node
+    }>()
 
     function prepareOldOutput(): void {
         const depth = getDepth(oldNode, oldRootNode)
@@ -151,6 +167,14 @@ export function visualDomDiff(
             }
         } else if (!areNodesEqual(oldNode, newNode)) {
             modifiedNodes.add(node)
+        }
+
+        if (oldNode.nodeName === 'TR') {
+            equalRows.push({
+                newRow: newNode,
+                oldRow: oldNode,
+                outputRow: node
+            })
         }
 
         newOutputNode.appendChild(node)
@@ -300,9 +324,11 @@ export function visualDomDiff(
 
             if (
                 oldOutputNode === newOutputNode &&
-                oldNode.nodeName === newNode.nodeName &&
-                (isText(newNode) ||
-                    !skipChildren(newNode) ||
+                ((isText(oldNode) && isText(newNode)) ||
+                    (nodeNameOverride(oldNode.nodeName) ===
+                        nodeNameOverride(newNode.nodeName) &&
+                        !skipChildren(oldNode) &&
+                        !skipChildren(newNode)) ||
                     areNodesEqual(oldNode, newNode))
             ) {
                 appendCommonChild(
@@ -326,6 +352,56 @@ export function visualDomDiff(
             nextDiff(length)
             nextOld(length)
             nextNew(length)
+        }
+    }
+
+    // Ensure that equal table rows contain the minimum number of cells.
+    for (const { newRow, oldRow, outputRow } of equalRows) {
+        // Check if `outputRow` has any redundant cells.
+        let hasDelete = false
+        let hasInsert = false
+
+        Array.prototype.forEach.call(outputRow.childNodes, cell => {
+            if (addedNodes.has(cell)) {
+                hasInsert = true
+            } else if (removedNodes.has(cell)) {
+                hasDelete = true
+            }
+        })
+
+        if (!(hasInsert && hasDelete)) {
+            continue // No redundant cells.
+        }
+
+        // Remove all values which were previously recorded for outputRow's descendants.
+        const outputIterator = new DomIterator(outputRow)
+        outputIterator.next() // Skip `outputRow`.
+
+        for (const node of outputIterator) {
+            addedNodes.delete(node)
+            removedNodes.delete(node)
+            modifiedNodes.delete(node)
+            formattingMap.delete(node)
+        }
+
+        // Remove all outputRow's descendants.
+        while (outputRow.firstChild) {
+            outputRow.removeChild(outputRow.firstChild)
+        }
+
+        // Create a new diff with the minimum number of columns.
+        const oldCells = oldRow.childNodes
+        const newCells = newRow.childNodes
+
+        for (
+            let i = 0, l = Math.max(oldCells.length, newCells.length);
+            i < l;
+            ++i
+        ) {
+            const oldCell = oldCells[i] || emptyTextNode
+            const newCell = newCells[i] || emptyTextNode
+            const outputCell = visualDomDiff(oldCell, newCell, options)
+            outputRow.appendChild(outputCell)
         }
     }
 

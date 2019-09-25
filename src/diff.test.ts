@@ -511,6 +511,149 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         htmlToFragment('<p>123</p><p>789</p>'),
         '<p>123</p><p class="vdd-removed">456</p><p>789</p>',
         undefined
+    ],
+    [
+        'table - add TD',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td>one</td><td>two</td><td class="vdd-added">three</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - remove TD',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td>one</td><td>two</td><td class="vdd-removed">three</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - add TH',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><th>three</th></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td>one</td><td>two</td><th class="vdd-added">three</th></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - remove TH',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><th>three</th></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td>one</td><td>two</td><th class="vdd-removed">three</th></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - replace TD with TH',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>one</th><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><th class="vdd-modified">one</th><td>two</td><td>three</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - replace TH with TD',
+        htmlToFragment(
+            '<table><tbody><tr><th>one</th><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td class="vdd-modified">one</td><td>two</td><td>three</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values between TDs',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>two</td><td>one</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></td><td><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values between THs',
+        htmlToFragment(
+            '<table><tbody><tr><th>one</th><th>two</th></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>two</th><th>one</th></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><th><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></th><th><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></th></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values between a TD and TH',
+        htmlToFragment(
+            '<table><tbody><tr><th>one</th><td>two</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>two</th><td>one</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><th><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></th><td><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - swap a TD with a TH',
+        htmlToFragment(
+            '<table><tbody><tr><th>one</th><td>two</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>two</td><th>one</th></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td class="vdd-modified"><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></td><th class="vdd-modified"><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></th></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values and add TDs',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>two</td><td>one</td><td>three</td><td>four</td><td>five</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></td><td><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></td><td>three</td><td class="vdd-added">four</td><td class="vdd-added">five</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values and remove TDs',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td><td>two</td><td>three</td><td>four</td><td>five</td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td>two</td><td>one</td><td>three</td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td><del class="vdd-removed">one</del><ins class="vdd-added">two</ins></td><td><del class="vdd-removed">two</del><ins class="vdd-added">one</ins></td><td>three</td><td class="vdd-removed">four</td><td class="vdd-removed">five</td></tr></tbody></table>',
+        undefined
+    ],
+    [
+        'table - move values with formatting',
+        htmlToFragment(
+            '<table><tbody><tr><td><strong>one</strong></td><td><strong>two</strong></td><td><strong>three</strong></td></tr></tbody></table>'
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><td><i>two</i></td><td><i>one</i></td><td><i>three</i></td></tr></tbody></table>'
+        ),
+        '<table><tbody><tr><td><del class="vdd-removed"><strong>one</strong></del><ins class="vdd-added"><i>two</i></ins></td><td><del class="vdd-removed"><strong>two</strong></del><ins class="vdd-added"><i>one</i></ins></td><td><ins class="vdd-modified"><i>three</i></ins></td></tr></tbody></table>',
+        undefined
     ]
 ])(
     '%s',

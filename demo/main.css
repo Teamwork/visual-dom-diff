@@ -9,6 +9,15 @@ img {
     max-width: 100%;
 }
 
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: calc(1rem / 16) solid black;
+    padding: 0.25rem;
+}
+
 .row {
 	display: flex;
     flex: 1 0 0;
