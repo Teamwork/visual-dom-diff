@@ -4,7 +4,6 @@ import { DomIterator } from './domIterator'
 import {
     areNodesEqual,
     charForNodeName,
-    diffText,
     getAncestors,
     isElement,
     isTableValid,
@@ -54,6 +53,7 @@ export function visualDomDiff(
     const config = optionsToConfig(options)
     const {
         addedClass,
+        diffText,
         modifiedClass,
         removedClass,
         skipSelf,

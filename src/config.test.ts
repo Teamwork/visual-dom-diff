@@ -1,5 +1,6 @@
+import { Diff } from 'diff-match-patch'
 import { optionsToConfig } from './config'
-import { isComment, isDocumentFragment, isText } from './util'
+import { diffText, isComment, isDocumentFragment, isText } from './util'
 
 const text = document.createTextNode('text')
 const span = document.createElement('SPAN')
@@ -134,18 +135,25 @@ describe('simple options', () => {
     test('default', () => {
         const config = optionsToConfig()
         expect(config.addedClass).toBe('vdd-added')
+        expect(config.diffText).toBe(diffText)
         expect(config.modifiedClass).toBe('vdd-modified')
         expect(config.removedClass).toBe('vdd-removed')
         expect(config.skipModified).toBe(false)
     })
     test('override', () => {
+        const customDiffText = (
+            _oldText: string,
+            _newText: string,
+        ): Diff[] => []
         const config = optionsToConfig({
             addedClass: 'ADDED',
+            diffText: customDiffText,
             modifiedClass: 'MODIFIED',
             removedClass: 'REMOVED',
             skipModified: true,
         })
         expect(config.addedClass).toBe('ADDED')
+        expect(config.diffText).toBe(customDiffText)
         expect(config.modifiedClass).toBe('MODIFIED')
         expect(config.removedClass).toBe('REMOVED')
         expect(config.skipModified).toBe(true)

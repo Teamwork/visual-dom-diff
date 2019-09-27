@@ -1,5 +1,7 @@
 import { DomIteratorOptions } from './domIterator'
 import {
+    diffText as diffTextDefault,
+    DiffTextType,
     IndefiniteNodePredicate,
     isDocument,
     isDocumentFragment,
@@ -46,6 +48,13 @@ export interface Options {
      * Return `undefined` for the default behaviour.
      */
     skipSelf?: IndefiniteNodePredicate
+    /**
+     * A plain-text diff function, which is used internally to compare serialized
+     * representations of DOM nodes, where each DOM element is represented by a single
+     * character from the Private Use Area of the Basic Multilingual Unicode Plane. It defaults
+     * to [diff_main](https://github.com/google/diff-match-patch/wiki/API#diff_maintext1-text2--diffs).
+     */
+    diffText?: DiffTextType
 }
 
 export interface Config extends Options, DomIteratorOptions {
@@ -55,6 +64,7 @@ export interface Config extends Options, DomIteratorOptions {
     readonly skipModified: boolean
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
+    readonly diffText: DiffTextType
 }
 
 const skipChildrenMap = new Set()
@@ -97,9 +107,11 @@ export function optionsToConfig({
     skipModified = false,
     skipChildren,
     skipSelf,
+    diffText = diffTextDefault,
 }: Options = {}): Config {
     return {
         addedClass,
+        diffText,
         modifiedClass,
         removedClass,
         skipModified,

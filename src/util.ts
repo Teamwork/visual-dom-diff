@@ -2,6 +2,7 @@ import { Diff, DIFF_EQUAL, diff_match_patch } from 'diff-match-patch'
 
 export type NodePredicate = (node: Node) => boolean
 export type IndefiniteNodePredicate = (node: Node) => boolean | undefined
+export type DiffTextType = (oldText: string, newText: string) => Diff[]
 
 export function isElement(node: Node): node is HTMLElement {
     return node.nodeType === node.ELEMENT_NODE
@@ -212,8 +213,8 @@ const dmp = new diff_match_patch()
 /**
  * Diffs the 2 strings and cleans up the result before returning it.
  */
-export function diffText(text1: string, text2: string): Diff[] {
-    const diff = dmp.diff_main(text1, text2)
+export function diffText(oldText: string, newText: string): Diff[] {
+    const diff = dmp.diff_main(oldText, newText)
     const result: Diff[] = []
     const temp: Diff[] = []
 

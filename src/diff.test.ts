@@ -1,3 +1,4 @@
+import { Diff, DIFF_DELETE, DIFF_INSERT } from 'diff-match-patch'
 import { JSDOM } from 'jsdom'
 import { Options } from './config'
 import { visualDomDiff } from './diff'
@@ -377,6 +378,24 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         htmlToFragment('prefix   suffix'),
         'prefix  <ins class="vdd-added"> </ins>suffix',
         undefined,
+    ],
+    [
+        'custom diffText option',
+        htmlToFragment('one two'),
+        htmlToFragment('one two three'),
+        '<del class="vdd-removed">one two</del><ins class="vdd-added">one two three</ins>',
+        {
+            diffText: (oldText: string, newText: string): Diff[] => {
+                const diff: Diff[] = []
+                if (oldText) {
+                    diff.push([DIFF_DELETE, oldText])
+                }
+                if (newText) {
+                    diff.push([DIFF_INSERT, newText])
+                }
+                return diff
+            },
+        },
     ],
     [
         'custom skipChildren option',

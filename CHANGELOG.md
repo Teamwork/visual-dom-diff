@@ -1,5 +1,6 @@
-# 0.6.1
+# 0.7.0
 
+-   Add `diffText` option.
 -   Fix table diffs. If a table can't be diffed correctly, both the old and new tables are added to the diff result with "vdd-removed" and "vdd-added" classes respectively.
 
 # 0.6.0
