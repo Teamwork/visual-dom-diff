@@ -451,17 +451,6 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
-        'a table with a changed cell and text added after',
-        htmlToFragment(
-            `<p>This homepage is a bit unusual but I wouldn't worry about it. Nor would I tell the authorities, EVER!</p><table border="1" style="border-collapse:collapse;width:360px;"><tbody><tr><td style="width:253px;">scsac</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascsac</td></tr><tr><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td></tr><tr><td style="width:253px;"><br></td><td style="width:253px;">ascasc</td><td style="width:253px;"><br></td></tr></tbody></table><p><br></p>`,
-        ),
-        htmlToFragment(
-            `<p>This homepage is a bit unusual but I wouldn't worry about it. Nor would I tell the authorities, EVER!</p><table border="1" style="border-collapse:collapse;width:360px;"><tbody><tr><td style="width:253px;">scsac</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascsac</td></tr><tr><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td></tr><tr><td style="width:253px;">wdqdqwd</td><td style="width:253px;">ascasc</td><td style="width:253px;"><br></td></tr></tbody></table><p>sacascascas</p><p>sacasc</p><p>ascasc</p><p><br></p>`,
-        ),
-        `<p>This homepage is a bit unusual but I wouldn't worry about it. Nor would I tell the authorities, EVER!</p><table border="1" style="border-collapse:collapse;width:360px;"><tbody><tr><td style="width:253px;">scsac</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascsac</td></tr><tr><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td><td style="width:253px;">ascasc</td></tr><tr><td style="width:253px;"><br class="vdd-removed"><ins class="vdd-added">wdqdqwd</ins></td><td style="width:253px;">ascasc</td><td style="width:253px;"><br></td></tr></tbody></table><p class="vdd-added">sacascascas</p><p class="vdd-added">sacasc</p><p class="vdd-added">ascasc</p><p><br></p>`,
-        undefined,
-    ],
-    [
         'changes with skipModified === true',
         htmlToFragment(
             '<p>prefix <strong>modified</strong> old suffix removed</p><img src="image.png"><p data-value="old">test</p>',
@@ -488,17 +477,6 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         },
     ],
     [
-        'equal node marker preservation',
-        htmlToFragment(
-            '<table><thead><tr><th>wqdwqd</th><th>qwdwqd</th><th>wqdwqd</th></tr></thead><tbody><tr><td> qwdwqd</td><td> qwdwqd</td><td> </td></tr><tr><td> </td><td> replaced</td><td> aXAXa</td></tr><tr><td> added</td><td> </td><td> </td></tr><tr><td> </td><td> </td><td><strong>wqdwqdwd</strong></td></tr></tbody></table>',
-        ),
-        htmlToFragment(
-            '<table><thead><tr><th>wqdwqd</th><th>qwdwqd</th><th>wqdwqd</th></tr></thead><tbody><tr><td> qwdwqd</td><td> qwdwqd</td><td><br></td></tr><tr><td><br></td><td> replaced</td><td> aXAXa</td></tr><tr><td> added</td><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td><td><strong>wqdwqdwd</strong></td></tr></tbody></table>',
-        ),
-        '<table><thead><tr><th>wqdwqd</th><th>qwdwqd</th><th>wqdwqd</th></tr></thead><tbody><tr><td> qwdwqd</td><td> qwdwqd</td><td><del class="vdd-removed"> </del><br class="vdd-added"></td></tr><tr><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td> replaced</td><td> aXAXa</td></tr><tr><td> added</td><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><del class="vdd-removed"> </del><br class="vdd-added"></td></tr><tr><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><del class="vdd-removed"> </del><br class="vdd-added"></td><td><strong>wqdwqdwd</strong></td></tr></tbody></table>',
-        undefined,
-    ],
-    [
         'add a paragraph between other paragraphs',
         htmlToFragment('<p>123</p><p>789</p>'),
         htmlToFragment('<p>123</p><p>456</p><p>789</p>'),
@@ -510,6 +488,154 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         htmlToFragment('<p>123</p><p>456</p><p>789</p>'),
         htmlToFragment('<p>123</p><p>789</p>'),
         '<p>123</p><p class="vdd-removed">456</p><p>789</p>',
+        undefined,
+    ],
+    [
+        'table - added',
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td></tr></tbody></table><table><tbody><tr><td>two</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><td>one</td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>two</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - removed',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td></tr></tbody></table><table><tbody><tr><td>two</td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table><tbody><tr><td>one</td></tr></tbody></table><table class="vdd-removed"><tbody><tr><td>two</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid old table',
+        htmlToFragment(
+            '<table><colgroup></colgroup><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><colgroup></colgroup><tbody><tr><td>one</td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid new table',
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><colgroup></colgroup><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        '<table class="vdd-removed"><tbody><tr><td>one</td></tr></tbody></table><table class="vdd-added"><colgroup></colgroup><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        // The default diff algorithm matches the caption with the cell which leads to a "broken" result.
+        'table - invalid diff table',
+        htmlToFragment(
+            '<table><tbody><tr><td>123456</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><caption>123456</caption><tbody><tr><td></td></tr></tbody></table>',
+        ),
+        '<table class="vdd-removed"><tbody><tr><td>123456</td></tr></tbody></table><table class="vdd-added"><caption>123456</caption><tbody><tr><td></td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid - no TBODY',
+        htmlToFragment('<table></table>'),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid - empty TBODY',
+        htmlToFragment('<table><tbody></tbody></table>'),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid row in THEAD',
+        htmlToFragment(
+            '<table><thead><tr></tr></thead><tbody><tr><td></td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><thead><tr></tr></thead><tbody><tr><td></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid row in TBODY',
+        htmlToFragment('<table><tbody><tr></tr></tbody></table>'),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid row in TFOOT',
+        htmlToFragment(
+            '<table><tbody><tr><td></td></tr></tbody><tfoot><tr></tr></tfoot></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><td></td></tr></tbody><tfoot><tr></tr></tfoot></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid node in THEAD->TR',
+        htmlToFragment(
+            '<table><thead><tr><!-- a --></tr></thead><tbody><tr><td></td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><thead><tr><!-- a --></tr></thead><tbody><tr><td></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid node in TBODY->TR',
+        htmlToFragment('<table><tbody><tr><!-- a --></tr></tbody></table>'),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><!-- a --></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid node in TFOOT->TR',
+        htmlToFragment(
+            '<table><tbody><tr><td></td></tr></tbody><tfoot><tr><!-- a --></tr></tfoot></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><td></td></tr></tbody><tfoot><tr><!-- a --></tr></tfoot></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid - inconsistent number of cells in each row',
+        htmlToFragment(
+            '<table><tbody><tr><td></td></tr><tr><td></td><td></td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><td></td></tr><tr><td></td><td></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid rowspan',
+        htmlToFragment(
+            '<table><tbody><tr><td rowspan="2"></td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><td rowspan="2"></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - invalid colspan',
+        htmlToFragment(
+            '<table><tbody><tr><td colspan="2"></td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table class="vdd-removed"><tbody><tr><td colspan="2"></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - valid with thead, tfoot, colspan and rowspan',
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><thead></thead><tbody><tr><td colspan="1" rowspan="1">one</td></tr></tbody><tfoot></tfoot></table>',
+        ),
+        '<table><thead class="vdd-added"></thead><tbody><tr><td colspan="1" rowspan="1" class="vdd-modified">one</td></tr></tbody><tfoot class="vdd-added"></tfoot></table>',
         undefined,
     ],
     [
@@ -653,6 +779,90 @@ test.each<[string, Node, Node, string, Options | undefined]>([
             '<table><tbody><tr><td><i>two</i></td><td><i>one</i></td><td><i>three</i></td></tr></tbody></table>',
         ),
         '<table><tbody><tr><td><del class="vdd-removed"><strong>one</strong></del><ins class="vdd-added"><i>two</i></ins></td><td><del class="vdd-removed"><strong>two</strong></del><ins class="vdd-added"><i>one</i></ins></td><td><ins class="vdd-modified"><i>three</i></ins></td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - add row to TBODY',
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td></tr><tr><td>two</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><td>one</td></tr><tr class="vdd-added"><td>two</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - remove row from TBODY',
+        htmlToFragment(
+            '<table><tbody><tr><td>one</td></tr><tr><td>two</td></tr></tbody></table>',
+        ),
+        htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
+        '<table><tbody><tr><td>one</td></tr><tr class="vdd-removed"><td>two</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - add row to THEAD',
+        htmlToFragment(
+            '<table><thead></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><thead><tr><td>zero</td></tr></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        '<table><thead><tr class="vdd-added"><td>zero</td></tr></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - remove row from THEAD',
+        htmlToFragment(
+            '<table><thead><tr><td>zero</td></tr></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><thead></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        ),
+        '<table><thead><tr class="vdd-removed"><td>zero</td></tr></thead><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - add row and column',
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>last column</th></tr><tr><td>4444</td><td>6666</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr><tr><td>1111</td><td>2222</td><td>3333</td></tr><tr><td>4444</td><td>5555</td><td>6666</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><th>first column</th><th class="vdd-added">second column</th><th>last column</th></tr><tr class="vdd-added"><td>1111</td><td>2222</td><td>3333</td></tr><tr><td>4444</td><td class="vdd-added">5555</td><td>6666</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - add row and remove column',
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr><tr><td>4444</td><td>5555</td><td>6666</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>last column</th></tr><tr><td>1111</td><td>3333</td></tr><tr><td>4444</td><td>6666</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr><tr class="vdd-added"><td>1111</td><td class="vdd-removed"></td><td>3333</td></tr><tr><td>4444</td><td class="vdd-removed">5555</td><td>6666</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - remove row and add column',
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>last column</th></tr><tr><td>1111</td><td>3333</td></tr><tr><td>4444</td><td>6666</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr><tr><td>4444</td><td>5555</td><td>6666</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><th>first column</th><th class="vdd-added">second column</th><th>last column</th></tr><tr class="vdd-removed"><td>1111</td><td></td><td>3333</td></tr><tr><td>4444</td><td class="vdd-added">5555</td><td>6666</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - remove row and column',
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr><tr><td>1111</td><td>2222</td><td>3333</td></tr><tr><td>4444</td><td>5555</td><td>6666</td></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>last column</th></tr><tr><td>4444</td><td>6666</td></tr></tbody></table>',
+        ),
+        '<table><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr><tr class="vdd-removed"><td>1111</td><td>2222</td><td>3333</td></tr><tr><td>4444</td><td class="vdd-removed">5555</td><td>6666</td></tr></tbody></table>',
         undefined,
     ],
 ])(

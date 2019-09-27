@@ -301,3 +301,87 @@ export function markUpNode(
         wrapper.appendChild(node)
     }
 }
+
+export function isTableValid(table: Node, verifyColumns: boolean): boolean {
+    let columnCount: number | undefined
+    return validateTable(table)
+
+    function validateTable({ childNodes }: Node): boolean {
+        const l = childNodes.length
+        let i = 0
+
+        if (i < l && childNodes[i].nodeName === 'CAPTION') {
+            i++
+        }
+
+        if (i < l && childNodes[i].nodeName === 'THEAD') {
+            if (!validateRowGroup(childNodes[i])) {
+                return false
+            }
+            i++
+        }
+
+        if (i < l && childNodes[i].nodeName === 'TBODY') {
+            if (!validateRowGroup(childNodes[i])) {
+                return false
+            }
+            i++
+        } else {
+            return false
+        }
+
+        if (i < l && childNodes[i].nodeName === 'TFOOT') {
+            if (!validateRowGroup(childNodes[i])) {
+                return false
+            }
+            i++
+        }
+
+        return i === l
+    }
+
+    function validateRowGroup({ childNodes, nodeName }: Node): boolean {
+        if (nodeName === 'TBODY' && childNodes.length === 0) {
+            return false
+        }
+        for (let i = 0, l = childNodes.length; i < l; ++i) {
+            if (!validateRow(childNodes[i])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    function validateRow({ childNodes, nodeName }: Node): boolean {
+        if (nodeName !== 'TR' || childNodes.length === 0) {
+            return false
+        }
+        if (verifyColumns) {
+            if (columnCount === undefined) {
+                columnCount = childNodes.length
+            } else if (columnCount !== childNodes.length) {
+                return false
+            }
+        }
+        for (let i = 0, l = childNodes.length; i < l; ++i) {
+            if (!validateCell(childNodes[i])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    function validateCell(node: Node): boolean {
+        const { nodeName } = node
+        if (nodeName !== 'TD' && nodeName !== 'TH') {
+            return false
+        }
+        const cell = node as Element
+        const colspan = cell.getAttribute('colspan')
+        const rowspan = cell.getAttribute('rowspan')
+        return (
+            (colspan === null || colspan === '1') &&
+            (rowspan === null || rowspan === '1')
+        )
+    }
+}

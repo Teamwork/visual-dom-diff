@@ -7,6 +7,7 @@ import {
     diffText,
     getAncestors,
     isElement,
+    isTableValid,
     isText,
     markUpNode,
     never,
@@ -35,6 +36,12 @@ const serialize = (root: Node, config: Config): string =>
     )
 
 const getLength = (node: Node): number => (isText(node) ? node.length : 1)
+const isTr = (node: Node): boolean => node.nodeName === 'TR'
+const isNotTr = (node: Node): boolean => !isTr(node)
+const trIteratorOptions = {
+    skipChildren: isTr,
+    skipSelf: isNotTr,
+}
 
 export { Options as VisualDomDiffOptions } from './config'
 export function visualDomDiff(
@@ -44,7 +51,6 @@ export function visualDomDiff(
 ): DocumentFragment {
     // Define config and simple helpers.
     const document = newRootNode.ownerDocument || (newRootNode as Document)
-    const emptyTextNode = document.createTextNode('')
     const config = optionsToConfig(options)
     const {
         addedClass,
@@ -62,6 +68,8 @@ export function visualDomDiff(
         getAncestors(node, rootNode)
             .filter(isFormattingNode)
             .reverse()
+    const getColumnValue = (node: Node) =>
+        addedNodes.has(node) ? 1 : removedNodes.has(node) ? -1 : 0
 
     // Input iterators.
     const diffIterator = diffText(
@@ -97,11 +105,18 @@ export function visualDomDiff(
     const addedNodes = new Set<Node>()
     const modifiedNodes = new Set<Node>()
     const formattingMap = new Map<Node, Node[]>()
-    const equalRows = new Array<{
-        newRow: Node
-        oldRow: Node
-        outputRow: Node
+    const equalTables = new Array<{
+        oldTable: Node
+        newTable: Node
+        outputTable: Node
     }>()
+    const equalRows = new Map<
+        Node, // outputRow
+        {
+            oldRow: Node
+            newRow: Node
+        }
+    >()
 
     function prepareOldOutput(): void {
         const depth = getDepth(oldNode, oldRootNode)
@@ -165,16 +180,24 @@ export function visualDomDiff(
                     }
                 }
             }
-        } else if (!areNodesEqual(oldNode, newNode)) {
-            modifiedNodes.add(node)
-        }
+        } else {
+            if (!areNodesEqual(oldNode, newNode)) {
+                modifiedNodes.add(node)
+            }
 
-        if (oldNode.nodeName === 'TR') {
-            equalRows.push({
-                newRow: newNode,
-                oldRow: oldNode,
-                outputRow: node,
-            })
+            const nodeName = oldNode.nodeName
+            if (nodeName === 'TABLE') {
+                equalTables.push({
+                    newTable: newNode,
+                    oldTable: oldNode,
+                    outputTable: node,
+                })
+            } else if (nodeName === 'TR') {
+                equalRows.set(node, {
+                    newRow: newNode,
+                    oldRow: oldNode,
+                })
+            }
         }
 
         newOutputNode.appendChild(node)
@@ -355,56 +378,6 @@ export function visualDomDiff(
         }
     }
 
-    // Ensure that equal table rows contain the minimum number of cells.
-    for (const { newRow, oldRow, outputRow } of equalRows) {
-        // Check if `outputRow` has any redundant cells.
-        let hasDelete = false
-        let hasInsert = false
-
-        Array.prototype.forEach.call(outputRow.childNodes, cell => {
-            if (addedNodes.has(cell)) {
-                hasInsert = true
-            } else if (removedNodes.has(cell)) {
-                hasDelete = true
-            }
-        })
-
-        if (!(hasInsert && hasDelete)) {
-            continue // No redundant cells.
-        }
-
-        // Remove all values which were previously recorded for outputRow's descendants.
-        const outputIterator = new DomIterator(outputRow)
-        outputIterator.next() // Skip `outputRow`.
-
-        for (const node of outputIterator) {
-            addedNodes.delete(node)
-            removedNodes.delete(node)
-            modifiedNodes.delete(node)
-            formattingMap.delete(node)
-        }
-
-        // Remove all outputRow's descendants.
-        while (outputRow.firstChild) {
-            outputRow.removeChild(outputRow.firstChild)
-        }
-
-        // Create a new diff with the minimum number of columns.
-        const oldCells = oldRow.childNodes
-        const newCells = newRow.childNodes
-
-        for (
-            let i = 0, l = Math.max(oldCells.length, newCells.length);
-            i < l;
-            ++i
-        ) {
-            const oldCell = oldCells[i] || emptyTextNode
-            const newCell = newCells[i] || emptyTextNode
-            const outputCell = visualDomDiff(oldCell, newCell, options)
-            outputRow.appendChild(outputCell)
-        }
-    }
-
     // Move deletes before inserts.
     for (removedNode of removedNodes) {
         const parentNode = removedNode.parentNode as Node
@@ -413,6 +386,162 @@ export function visualDomDiff(
         while (previousSibling && addedNodes.has(previousSibling)) {
             parentNode.insertBefore(removedNode, previousSibling)
             previousSibling = removedNode.previousSibling
+        }
+    }
+
+    // Ensure a user friendly result for tables.
+    for (const { newTable, oldTable, outputTable } of equalTables) {
+        // Handle tables which can't be diffed nicely.
+        if (
+            !isTableValid(oldTable, true) ||
+            !isTableValid(newTable, true) ||
+            !isTableValid(outputTable, false)
+        ) {
+            // Remove all values which were previously recorded for outputTable.
+            for (const node of new DomIterator(outputTable)) {
+                addedNodes.delete(node)
+                removedNodes.delete(node)
+                modifiedNodes.delete(node)
+                formattingMap.delete(node)
+            }
+
+            // Display both the old and new table.
+            const parentNode = outputTable.parentNode!
+            const oldTableClone = oldTable.cloneNode(true)
+            const newTableClone = newTable.cloneNode(true)
+            parentNode.insertBefore(oldTableClone, outputTable)
+            parentNode.insertBefore(newTableClone, outputTable)
+            parentNode.removeChild(outputTable)
+            removedNodes.add(oldTableClone)
+            addedNodes.add(newTableClone)
+            continue
+        }
+
+        // Figure out which columns have been added or removed
+        // based on the first row appearing in both tables.
+        //
+        // -  1: column added
+        // -  0: column equal
+        // - -1: column removed
+        const columns: number[] = []
+        for (const row of new DomIterator(outputTable, trIteratorOptions)) {
+            const diffedRows = equalRows.get(row)
+            if (!diffedRows) {
+                continue
+            }
+            const { oldRow, newRow } = diffedRows
+            const oldColumnCount = oldRow.childNodes.length
+            const newColumnCount = newRow.childNodes.length
+            const maxColumnCount = Math.max(oldColumnCount, newColumnCount)
+            const minColumnCount = Math.min(oldColumnCount, newColumnCount)
+
+            if (row.childNodes.length === maxColumnCount) {
+                // The generic diff algorithm worked properly in this case,
+                // so we can rely on its results.
+                const cells = row.childNodes
+                for (let i = 0, l = cells.length; i < l; ++i) {
+                    columns.push(getColumnValue(cells[i]))
+                }
+            } else {
+                // Fallback to a simple but correct algorithm.
+                let i = 0
+                let columnValue = 0
+                while (i < minColumnCount) {
+                    columns[i++] = columnValue
+                }
+                columnValue = oldColumnCount < newColumnCount ? 1 : -1
+                while (i < maxColumnCount) {
+                    columns[i++] = columnValue
+                }
+            }
+            break
+        }
+        const columnCount = columns.length
+        /* istanbul ignore if */
+        if (columnCount === 0) {
+            return never()
+        }
+
+        // Fix up the rows which do not align with `columns`.
+        for (const row of new DomIterator(outputTable, trIteratorOptions)) {
+            const cells = row.childNodes
+
+            if (addedNodes.has(row)) {
+                if (cells.length < columnCount) {
+                    for (let i = 0; i < columnCount; ++i) {
+                        if (columns[i] === -1) {
+                            const td = document.createElement('TD')
+                            row.insertBefore(td, cells[i])
+                            removedNodes.add(td)
+                        }
+                    }
+                }
+            } else if (removedNodes.has(row)) {
+                if (cells.length < columnCount) {
+                    for (let i = 0; i < columnCount; ++i) {
+                        if (columns[i] === 1) {
+                            const td = document.createElement('TD')
+                            row.insertBefore(td, cells[i])
+                        }
+                    }
+                }
+            } else {
+                // Check, if the columns in this row are aligned with those in the reference row.
+                let isAligned = true
+                for (let i = 0, l = cells.length; i < l; ++i) {
+                    if (getColumnValue(cells[i]) !== columns[i]) {
+                        isAligned = false
+                        break
+                    }
+                }
+
+                if (!isAligned) {
+                    // Remove all values which were previously recorded for row's content.
+                    const iterator = new DomIterator(row)
+                    iterator.next() // Skip the row itself.
+                    for (const node of iterator) {
+                        addedNodes.delete(node)
+                        removedNodes.delete(node)
+                        modifiedNodes.delete(node)
+                        formattingMap.delete(node)
+                    }
+
+                    // Remove the row's content.
+                    while (row.firstChild) {
+                        row.removeChild(row.firstChild)
+                    }
+
+                    // Diff the individual cells.
+                    const { newRow, oldRow } = equalRows.get(row)!
+                    const newCells = newRow.childNodes
+                    const oldCells = oldRow.childNodes
+                    let oldIndex = 0
+                    let newIndex = 0
+                    for (let i = 0; i < columnCount; ++i) {
+                        if (columns[i] === 1) {
+                            const newCellClone = newCells[newIndex++].cloneNode(
+                                true,
+                            )
+                            row.appendChild(newCellClone)
+                            addedNodes.add(newCellClone)
+                        } else if (columns[i] === -1) {
+                            const oldCellClone = oldCells[oldIndex++].cloneNode(
+                                true,
+                            )
+                            row.appendChild(oldCellClone)
+                            removedNodes.add(oldCellClone)
+                        } else {
+                            row.appendChild(
+                                visualDomDiff(
+                                    oldCells[oldIndex++],
+                                    newCells[newIndex++],
+                                    options,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 
