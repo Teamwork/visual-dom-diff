@@ -466,7 +466,7 @@ export function visualDomDiff(
         for (const row of new DomIterator(outputTable, trIteratorOptions)) {
             const cells = row.childNodes
 
-            if (addedNodes.has(row)) {
+            if (addedNodes.has(row) || addedNodes.has(row.parentNode!)) {
                 if (cells.length < columnCount) {
                     for (let i = 0; i < columnCount; ++i) {
                         if (columns[i] === -1) {
@@ -476,7 +476,10 @@ export function visualDomDiff(
                         }
                     }
                 }
-            } else if (removedNodes.has(row)) {
+            } else if (
+                removedNodes.has(row) ||
+                removedNodes.has(row.parentNode!)
+            ) {
                 if (cells.length < columnCount) {
                     for (let i = 0; i < columnCount; ++i) {
                         if (columns[i] === 1) {

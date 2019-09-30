@@ -1,3 +1,7 @@
+# 0.7.1
+
+-   Fix a TypeError in table diff, which occured when THEAD or TFOOT was added or removed, and a column was removed.
+
 # 0.7.0
 
 -   Add `diffText` option.

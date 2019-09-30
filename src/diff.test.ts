@@ -884,6 +884,28 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         '<table><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr><tr class="vdd-removed"><td>1111</td><td>2222</td><td>3333</td></tr><tr><td>4444</td><td class="vdd-removed">5555</td><td>6666</td></tr></tbody></table>',
         undefined,
     ],
+    [
+        'table - remove column and add THEAD',
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><thead><tr><th>1111</th><th>3333</th></tr></thead><tbody><tr><th>first column</th><th>last column</th></tr></tbody></table>',
+        ),
+        '<table><thead class="vdd-added"><tr><th>1111</th><td class="vdd-removed"></td><th>3333</th></tr></thead><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - remove column and THEAD',
+        htmlToFragment(
+            '<table><thead><tr><th>1111</th><th>2222</th><th>3333</th></tr></thead><tbody><tr><th>first column</th><th>second column</th><th>last column</th></tr></tbody></table>',
+        ),
+        htmlToFragment(
+            '<table><tbody><tr><th>first column</th><th>last column</th></tr></tbody></table>',
+        ),
+        '<table><thead class="vdd-removed"><tr><th>1111</th><th>2222</th><th>3333</th></tr></thead><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr></tbody></table>',
+        undefined,
+    ],
 ])(
     '%s',
     (
