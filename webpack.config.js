@@ -18,7 +18,6 @@ const config = {
             },
             {
                 test: /\.css$/,
-                include: [__dirname + '/demo'],
                 loader: 'style-loader!css-loader'
             },
             {

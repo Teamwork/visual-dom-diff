@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "clean": "rimraf lib",
-    "prettier": "prettier --list-different 'src/**/*' 'demo/**/*' '!**/*.jpg'",
+    "prettier": "prettier \"./src/**/*\" \"./demo/**/*\" \"!./**/*.jpg\" --list-different --write",
     "tslint": "tslint --project .",
     "tsc": "tsc -b .",
     "test": "jest",
