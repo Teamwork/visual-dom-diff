@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    "target": "es5",
     "module": "es2015",
+    "lib": ["es6", "dom"],
     "moduleResolution": "node",
-    "lib": [ "es2018", "dom" ],
     "rootDir": "./src",
     "outDir": "./lib",
     "preserveConstEnums": true,

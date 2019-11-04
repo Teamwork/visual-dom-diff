@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "clean": "rimraf lib",
+    "prettier-fix": "prettier \"./src/**/*\" \"./demo/**/*\" \"!./**/*.jpg\" --list-different --write",
     "prettier": "prettier \"./src/**/*\" \"./demo/**/*\" \"!./**/*.jpg\" --list-different",
     "tslint": "tslint --project .",
     "tsc": "tsc -b .",

@@ -76,6 +76,19 @@ export function areNodesEqual(
             return false
         }
     } else if (isElement(node1)) {
+        if (Element.prototype.getAttributeNames === undefined) {
+            Element.prototype.getAttributeNames = function() {
+                const attributes = this.attributes
+                const length = attributes.length
+                const result = new Array(length)
+                for (let i = 0; i < length; i++) {
+                    result[i] = attributes[i].name
+                }
+
+                return result
+            }
+        }
+
         const attributeNames1 = node1.getAttributeNames().sort()
         const attributeNames2 = (node2 as typeof node1)
             .getAttributeNames()

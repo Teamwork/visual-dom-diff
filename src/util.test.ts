@@ -232,6 +232,12 @@ describe('areNodesEqual', () => {
         test('document fragments', () => {
             expect(areNodesEqual(fragment, anotherFragment)).toBe(true)
         })
+        test('getAttributeNames fallback', () => {
+            // Clear default implementation to test fallback.
+            Element.prototype.getAttributeNames = undefined!
+
+            expect(areNodesEqual(span, identicalSpan)).toBe(true)
+        })
     })
     describe('deep', () => {
         const rootNode = document.createDocumentFragment()

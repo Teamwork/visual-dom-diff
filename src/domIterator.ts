@@ -5,7 +5,7 @@ export interface DomIteratorOptions {
     skipChildren?: NodePredicate
 }
 
-export class DomIterator implements IterableIterator<Node> {
+export class DomIterator implements Iterator<Node> {
     private nextNode: Node | null
     private descend: boolean = true
 
@@ -19,8 +19,20 @@ export class DomIterator implements IterableIterator<Node> {
         }
     }
 
-    public [Symbol.iterator](): IterableIterator<Node> {
-        return this
+    public toList(): Node[] {
+        const list: Node[] = []
+
+        while (true) {
+            const { done, value } = this.next()
+
+            if (!done) {
+                list.push(value)
+            } else {
+                break
+            }
+        }
+
+        return list
     }
 
     public next(): IteratorResult<Node> {
