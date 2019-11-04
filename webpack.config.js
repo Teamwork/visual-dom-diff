@@ -14,10 +14,7 @@ const config = {
             {
                 test: /\.js$/,
                 include: [__dirname + '/demo/', __dirname + '/lib/'],
-                loader: 'babel-loader',
-                query: {
-                    presets: ['@babel/preset-env']
-                }
+                loader: 'babel-loader'
             },
             {
                 test: /\.css$/,
