@@ -83,7 +83,6 @@ export function visualDomDiff(
     const newIterator = new DomIterator(newRootNode, config)
 
     // Input variables produced by the input iterators.
-    let diffDone: boolean | undefined
     let oldDone: boolean | undefined
     let newDone: boolean | undefined
     let diffItem: Diff
@@ -93,7 +92,6 @@ export function visualDomDiff(
     let oldOffset = 0
     let newOffset = 0
     diffItem = diffArray[diffIndex++]
-    diffDone = !diffItem
     ;({ done: oldDone, value: oldNode } = oldIterator.next())
     ;({ done: newDone, value: newNode } = newIterator.next())
 
@@ -248,7 +246,6 @@ export function visualDomDiff(
         diffOffset += step
         if (diffOffset === length) {
             diffItem = diffArray[diffIndex++]
-            diffDone = !diffItem
             diffOffset = 0
         } else {
             /* istanbul ignore if */
@@ -289,7 +286,7 @@ export function visualDomDiff(
     // Copy all content from oldRootNode and newRootNode to rootOutputNode,
     // while deduplicating identical content.
     // Difference markers and formatting are excluded at this stage.
-    while (!diffDone) {
+    while (diffItem) {
         if (diffItem[0] === DIFF_DELETE) {
             /* istanbul ignore if */
             if (oldDone) {

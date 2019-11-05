@@ -22,7 +22,8 @@
     "start:demo": "webpack-dev-server -d",
     "start:tsc": "tsc -b -w .",
     "preversion": "npm outdated && run-s build demo && git add docs",
-    "postversion": "git push && git push origin v${npm_package_version}"
+    "postversion": "git push && git push origin v${npm_package_version}",
+    "benchmark": "node ./scripts/benchmark.js"
   },
   "repository": {
     "type": "git",

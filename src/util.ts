@@ -48,6 +48,17 @@ export function areArraysEqual<T>(
     return true
 }
 
+function getAttributeNames(element: Element): string[] {
+    const attributes = element.attributes
+    const length = attributes.length
+    const result = new Array(length)
+    for (let i = 0; i < length; i++) {
+        result[i] = attributes[i].name
+    }
+
+    return result
+}
+
 /**
  * Compares DOM nodes for equality.
  * @param node1 The first node to compare.
@@ -76,23 +87,16 @@ export function areNodesEqual(
             return false
         }
     } else if (isElement(node1)) {
+        let attributeNames1: string[]
+        let attributeNames2: string[]
+
         if (Element.prototype.getAttributeNames === undefined) {
-            Element.prototype.getAttributeNames = function() {
-                const attributes = this.attributes
-                const length = attributes.length
-                const result = new Array(length)
-                for (let i = 0; i < length; i++) {
-                    result[i] = attributes[i].name
-                }
-
-                return result
-            }
+            attributeNames1 = getAttributeNames(node1).sort()
+            attributeNames2 = getAttributeNames(node2 as typeof node1).sort()
+        } else {
+            attributeNames1 = node1.getAttributeNames().sort()
+            attributeNames2 = (node2 as typeof node1).getAttributeNames().sort()
         }
-
-        const attributeNames1 = node1.getAttributeNames().sort()
-        const attributeNames2 = (node2 as typeof node1)
-            .getAttributeNames()
-            .sort()
 
         if (!areArraysEqual(attributeNames1, attributeNames2)) {
             return false
