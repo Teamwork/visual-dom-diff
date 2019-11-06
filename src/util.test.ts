@@ -15,6 +15,8 @@ import {
     never,
 } from './util'
 
+const window = new JSDOM('').window
+const document = window.document
 const text = document.createTextNode('text')
 const identicalText = document.createTextNode('text')
 const differentText = document.createTextNode('different text')
@@ -193,19 +195,20 @@ describe('areArraysEqual', () => {
 })
 
 describe.each<[string, (() => string[]) | undefined]>([
-    ['native', Element.prototype.getAttributeNames],
+    ['native', window.Element.prototype.getAttributeNames],
     ['undefined', undefined],
 ])(
     'areNodesEqual (getAttributeNames: %s)',
     (_: string, customGetAttributeNames: any) => {
-        const originalGetAttributeNames = Element.prototype.getAttributeNames
+        const originalGetAttributeNames =
+            window.Element.prototype.getAttributeNames
 
         beforeAll(() => {
-            Element.prototype.getAttributeNames = customGetAttributeNames
+            window.Element.prototype.getAttributeNames = customGetAttributeNames
         })
 
         afterAll(() => {
-            Element.prototype.getAttributeNames = originalGetAttributeNames
+            window.Element.prototype.getAttributeNames = originalGetAttributeNames
         })
 
         describe('shallow', () => {

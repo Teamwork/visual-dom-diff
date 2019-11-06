@@ -1,5 +1,7 @@
+import { JSDOM } from 'jsdom'
 import { DomIterator } from './domIterator'
 
+const document = new JSDOM('').window.document
 const text = document.createTextNode('text')
 const fragment = document.createDocumentFragment()
 const table = document.createElement('TABLE')
