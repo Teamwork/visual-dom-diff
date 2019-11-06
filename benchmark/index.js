@@ -4,8 +4,8 @@ const jsdom = require('jsdom')
 const path = require('path')
 const diff = require('../lib/diff')
 
-const oldPath = path.join(__dirname, 'benchmark', 'old.html')
-const newPath = path.join(__dirname, 'benchmark', 'new.html')
+const oldPath = path.join(__dirname, 'old.html')
+const newPath = path.join(__dirname, 'new.html')
 const oldHtml = fs.readFileSync(oldPath, 'utf8')
 const newHtml = fs.readFileSync(newPath, 'utf8')
 const oldNode = new jsdom.JSDOM(oldHtml).window.document.body

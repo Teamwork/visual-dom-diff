@@ -23,7 +23,7 @@
     "start:tsc": "tsc -b -w .",
     "preversion": "npm outdated && run-s build demo && git add docs",
     "postversion": "git push && git push origin v${npm_package_version}",
-    "benchmark": "node ./scripts/benchmark.js"
+    "benchmark": "node benchmark"
   },
   "repository": {
     "type": "git",
