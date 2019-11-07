@@ -19,20 +19,50 @@ export class DomIterator implements Iterator<Node> {
         }
     }
 
-    public toList(): Node[] {
-        const list: Node[] = []
+    public toArray(): Node[] {
+        const array: Node[] = []
+        let { done, value } = this.next()
 
-        while (true) {
-            const { done, value } = this.next()
-
-            if (!done) {
-                list.push(value)
-            } else {
-                break
-            }
+        while (!done) {
+            array.push(value)
+            ;({ done, value } = this.next())
         }
 
-        return list
+        return array
+    }
+
+    public forEach(fn: (node: Node) => void): void {
+        let { done, value } = this.next()
+
+        while (!done) {
+            fn(value)
+            ;({ done, value } = this.next())
+        }
+    }
+
+    public reduce<T>(fn: (result: T, current: Node) => T, initial: T): T {
+        let result = initial
+        let { done, value } = this.next()
+
+        while (!done) {
+            result = fn(result, value)
+            ;({ done, value } = this.next())
+        }
+
+        return result
+    }
+
+    public some(fn: (node: Node) => boolean): boolean {
+        let { done, value } = this.next()
+
+        while (!done) {
+            if (fn(value)) {
+                return true
+            }
+            ;({ done, value } = this.next())
+        }
+
+        return false
     }
 
     public next(): IteratorResult<Node> {

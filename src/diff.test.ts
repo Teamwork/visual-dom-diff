@@ -6,6 +6,7 @@ import { areNodesEqual, charForNodeName, isElement, isText } from './util'
 
 jest.setTimeout(2000)
 
+const document = new JSDOM('').window.document
 const pChar = charForNodeName('P')
 
 function fragmentToHtml(documentFragment: DocumentFragment): string {
