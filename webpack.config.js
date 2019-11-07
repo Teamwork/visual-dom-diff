@@ -7,38 +7,33 @@ const config = {
     entry: __dirname + '/demo/main.js',
     output: {
         filename: '[hash].js',
-        path: __dirname + '/docs/'
+        path: __dirname + '/docs/',
     },
     module: {
         rules: [
             {
-                test: /\.js$/,
-                include: [__dirname + '/demo/', __dirname + '/lib/'],
-                loader: 'babel-loader'
-            },
-            {
                 test: /\.css$/,
-                loader: 'style-loader!css-loader'
+                loader: 'style-loader!css-loader',
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                loader: 'file-loader'
+                loader: 'file-loader',
             },
             {
                 test: /\.html$/,
-                loader: 'html-loader'
-            }
-        ]
+                loader: 'html-loader',
+            },
+        ],
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: __dirname + '/demo/index.html'
-        })
+            template: __dirname + '/demo/index.html',
+        }),
     ],
     devServer: {
         open: true,
-        port: 8028
-    }
+        port: 8028,
+    },
 }
 
 if (!isDevServer) {

@@ -1,5 +1,3 @@
-import 'core-js/stable'
-import 'regenerator-runtime/runtime'
 import { visualDomDiff } from '../lib'
 import './main.css'
 
