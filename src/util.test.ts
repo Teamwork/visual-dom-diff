@@ -15,6 +15,8 @@ import {
     never,
 } from './util'
 
+const window = new JSDOM('').window
+const document = window.document
 const text = document.createTextNode('text')
 const identicalText = document.createTextNode('text')
 const differentText = document.createTextNode('different text')
@@ -192,95 +194,114 @@ describe('areArraysEqual', () => {
     })
 })
 
-describe('areNodesEqual', () => {
-    describe('shallow', () => {
-        test('the same node', () => {
-            expect(areNodesEqual(text, text)).toBe(true)
-        })
-        test('different node types', () => {
-            expect(areNodesEqual(text, span)).toBe(false)
-        })
-        test('different node names', () => {
-            expect(areNodesEqual(video, span)).toBe(false)
-        })
-        test('different comment nodes', () => {
-            expect(areNodesEqual(comment, differentComment)).toBe(false)
-        })
-        test('identical comment nodes', () => {
-            expect(areNodesEqual(comment, identicalComment)).toBe(true)
-        })
-        test('different text nodes', () => {
-            expect(areNodesEqual(text, differentText)).toBe(false)
-        })
-        test('identical text nodes', () => {
-            expect(areNodesEqual(text, identicalText)).toBe(true)
-        })
-        test('elements with different attribute names', () => {
-            expect(areNodesEqual(span, differentAttributeNamesSpan)).toBe(false)
-        })
-        test('elements with different attribute values', () => {
-            expect(areNodesEqual(span, differentAttributeValuesSpan)).toBe(
-                false,
-            )
-        })
-        test('elements with different childNodes', () => {
-            expect(areNodesEqual(span, differentChildNodesSpan)).toBe(true)
-        })
-        test('identical elements', () => {
-            expect(areNodesEqual(span, identicalSpan)).toBe(true)
-        })
-        test('document fragments', () => {
-            expect(areNodesEqual(fragment, anotherFragment)).toBe(true)
-        })
-    })
-    describe('deep', () => {
-        const rootNode = document.createDocumentFragment()
-        const div = document.createElement('DIV')
-        const p = document.createElement('P')
-        const em = document.createElement('EM')
-        const strong = document.createElement('STRONG')
-        rootNode.append(div, p)
-        p.append(em, strong)
-        em.textContent = 'em'
-        strong.textContent = 'strong'
+describe.each<[string, (() => string[]) | undefined]>([
+    ['native', window.Element.prototype.getAttributeNames],
+    ['undefined', undefined],
+])(
+    'areNodesEqual (getAttributeNames: %s)',
+    (_: string, customGetAttributeNames: any) => {
+        const originalGetAttributeNames =
+            window.Element.prototype.getAttributeNames
 
-        test('identical nodes', () => {
-            expect(
-                areNodesEqual(
-                    rootNode.cloneNode(true),
-                    rootNode.cloneNode(true),
-                    true,
-                ),
-            ).toBe(true)
+        beforeAll(() => {
+            window.Element.prototype.getAttributeNames = customGetAttributeNames
         })
-        test('extraneous child', () => {
-            const differentRootNode = rootNode.cloneNode(true)
-            ;((differentRootNode.lastChild as Node)
-                .lastChild as Node).appendChild(
-                document.createTextNode('different'),
-            )
-            expect(
-                areNodesEqual(
-                    rootNode.cloneNode(true),
-                    differentRootNode,
-                    true,
-                ),
-            ).toBe(false)
+
+        afterAll(() => {
+            window.Element.prototype.getAttributeNames = originalGetAttributeNames
         })
-        test('child with a different attribute', () => {
-            const differentRootNode = rootNode.cloneNode(true)
-            ;((differentRootNode.lastChild as Node)
-                .lastChild as Element).setAttribute('data-a', 'a')
-            expect(
-                areNodesEqual(
-                    rootNode.cloneNode(true),
-                    differentRootNode,
-                    true,
-                ),
-            ).toBe(false)
+
+        describe('shallow', () => {
+            test('the same node', () => {
+                expect(areNodesEqual(text, text)).toBe(true)
+            })
+            test('different node types', () => {
+                expect(areNodesEqual(text, span)).toBe(false)
+            })
+            test('different node names', () => {
+                expect(areNodesEqual(video, span)).toBe(false)
+            })
+            test('different comment nodes', () => {
+                expect(areNodesEqual(comment, differentComment)).toBe(false)
+            })
+            test('identical comment nodes', () => {
+                expect(areNodesEqual(comment, identicalComment)).toBe(true)
+            })
+            test('different text nodes', () => {
+                expect(areNodesEqual(text, differentText)).toBe(false)
+            })
+            test('identical text nodes', () => {
+                expect(areNodesEqual(text, identicalText)).toBe(true)
+            })
+            test('elements with different attribute names', () => {
+                expect(areNodesEqual(span, differentAttributeNamesSpan)).toBe(
+                    false,
+                )
+            })
+            test('elements with different attribute values', () => {
+                expect(areNodesEqual(span, differentAttributeValuesSpan)).toBe(
+                    false,
+                )
+            })
+            test('elements with different childNodes', () => {
+                expect(areNodesEqual(span, differentChildNodesSpan)).toBe(true)
+            })
+            test('identical elements', () => {
+                expect(areNodesEqual(span, identicalSpan)).toBe(true)
+            })
+            test('document fragments', () => {
+                expect(areNodesEqual(fragment, anotherFragment)).toBe(true)
+            })
         })
-    })
-})
+        describe('deep', () => {
+            const rootNode = document.createDocumentFragment()
+            const div = document.createElement('DIV')
+            const p = document.createElement('P')
+            const em = document.createElement('EM')
+            const strong = document.createElement('STRONG')
+            rootNode.append(div, p)
+            p.append(em, strong)
+            em.textContent = 'em'
+            strong.textContent = 'strong'
+
+            test('identical nodes', () => {
+                expect(
+                    areNodesEqual(
+                        rootNode.cloneNode(true),
+                        rootNode.cloneNode(true),
+                        true,
+                    ),
+                ).toBe(true)
+            })
+            test('extraneous child', () => {
+                const differentRootNode = rootNode.cloneNode(true)
+                ;((differentRootNode.lastChild as Node)
+                    .lastChild as Node).appendChild(
+                    document.createTextNode('different'),
+                )
+                expect(
+                    areNodesEqual(
+                        rootNode.cloneNode(true),
+                        differentRootNode,
+                        true,
+                    ),
+                ).toBe(false)
+            })
+            test('child with a different attribute', () => {
+                const differentRootNode = rootNode.cloneNode(true)
+                ;((differentRootNode.lastChild as Node)
+                    .lastChild as Element).setAttribute('data-a', 'a')
+                expect(
+                    areNodesEqual(
+                        rootNode.cloneNode(true),
+                        differentRootNode,
+                        true,
+                    ),
+                ).toBe(false)
+            })
+        })
+    },
+)
 
 describe('getAncestors', () => {
     const node1 = document.createDocumentFragment()

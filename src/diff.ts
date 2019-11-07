@@ -25,7 +25,7 @@ const nodeNameOverride = (nodeName: string): string => {
  * from the Private Use Area of the Basic Multilingual Plane.
  */
 const serialize = (root: Node, config: Config): string =>
-    [...new DomIterator(root, config)].reduce(
+    new DomIterator(root, config).reduce(
         (text, node) =>
             text +
             (isText(node)
@@ -72,15 +72,15 @@ export function visualDomDiff(
         addedNodes.has(node) ? 1 : removedNodes.has(node) ? -1 : 0
 
     // Input iterators.
-    const diffIterator = diffText(
+    const diffArray = diffText(
         serialize(oldRootNode, config),
         serialize(newRootNode, config),
-    )[Symbol.iterator]()
+    )
+    let diffIndex = 0
     const oldIterator = new DomIterator(oldRootNode, config)
     const newIterator = new DomIterator(newRootNode, config)
 
     // Input variables produced by the input iterators.
-    let diffDone: boolean | undefined
     let oldDone: boolean | undefined
     let newDone: boolean | undefined
     let diffItem: Diff
@@ -89,7 +89,7 @@ export function visualDomDiff(
     let diffOffset = 0
     let oldOffset = 0
     let newOffset = 0
-    ;({ done: diffDone, value: diffItem } = diffIterator.next())
+    diffItem = diffArray[diffIndex++]
     ;({ done: oldDone, value: oldNode } = oldIterator.next())
     ;({ done: newDone, value: newNode } = newIterator.next())
 
@@ -243,7 +243,7 @@ export function visualDomDiff(
         const length = diffItem[1].length
         diffOffset += step
         if (diffOffset === length) {
-            ;({ done: diffDone, value: diffItem } = diffIterator.next())
+            diffItem = diffArray[diffIndex++]
             diffOffset = 0
         } else {
             /* istanbul ignore if */
@@ -284,7 +284,7 @@ export function visualDomDiff(
     // Copy all content from oldRootNode and newRootNode to rootOutputNode,
     // while deduplicating identical content.
     // Difference markers and formatting are excluded at this stage.
-    while (!diffDone) {
+    while (diffItem) {
         if (diffItem[0] === DIFF_DELETE) {
             /* istanbul ignore if */
             if (oldDone) {
@@ -379,18 +379,19 @@ export function visualDomDiff(
     }
 
     // Move deletes before inserts.
-    for (removedNode of removedNodes) {
-        const parentNode = removedNode.parentNode as Node
-        let previousSibling = removedNode.previousSibling
+    removedNodes.forEach(node => {
+        const parentNode = node.parentNode as Node
+        let previousSibling = node.previousSibling
 
         while (previousSibling && addedNodes.has(previousSibling)) {
-            parentNode.insertBefore(removedNode, previousSibling)
-            previousSibling = removedNode.previousSibling
+            parentNode.insertBefore(node, previousSibling)
+            previousSibling = node.previousSibling
         }
-    }
+    })
 
     // Ensure a user friendly result for tables.
-    for (const { newTable, oldTable, outputTable } of equalTables) {
+    equalTables.forEach(equalTable => {
+        const { newTable, oldTable, outputTable } = equalTable
         // Handle tables which can't be diffed nicely.
         if (
             !isTableValid(oldTable, true) ||
@@ -398,12 +399,12 @@ export function visualDomDiff(
             !isTableValid(outputTable, false)
         ) {
             // Remove all values which were previously recorded for outputTable.
-            for (const node of new DomIterator(outputTable)) {
+            new DomIterator(outputTable).forEach(node => {
                 addedNodes.delete(node)
                 removedNodes.delete(node)
                 modifiedNodes.delete(node)
                 formattingMap.delete(node)
-            }
+            })
 
             // Display both the old and new table.
             const parentNode = outputTable.parentNode!
@@ -414,7 +415,7 @@ export function visualDomDiff(
             parentNode.removeChild(outputTable)
             removedNodes.add(oldTableClone)
             addedNodes.add(newTableClone)
-            continue
+            return
         }
 
         // Figure out which columns have been added or removed
@@ -424,10 +425,11 @@ export function visualDomDiff(
         // -  0: column equal
         // - -1: column removed
         const columns: number[] = []
-        for (const row of new DomIterator(outputTable, trIteratorOptions)) {
+
+        new DomIterator(outputTable, trIteratorOptions).some(row => {
             const diffedRows = equalRows.get(row)
             if (!diffedRows) {
-                continue
+                return false
             }
             const { oldRow, newRow } = diffedRows
             const oldColumnCount = oldRow.childNodes.length
@@ -454,8 +456,9 @@ export function visualDomDiff(
                     columns[i++] = columnValue
                 }
             }
-            break
-        }
+
+            return true
+        })
         const columnCount = columns.length
         /* istanbul ignore if */
         if (columnCount === 0) {
@@ -463,7 +466,7 @@ export function visualDomDiff(
         }
 
         // Fix up the rows which do not align with `columns`.
-        for (const row of new DomIterator(outputTable, trIteratorOptions)) {
+        new DomIterator(outputTable, trIteratorOptions).forEach(row => {
             const cells = row.childNodes
 
             if (addedNodes.has(row) || addedNodes.has(row.parentNode!)) {
@@ -502,12 +505,12 @@ export function visualDomDiff(
                     // Remove all values which were previously recorded for row's content.
                     const iterator = new DomIterator(row)
                     iterator.next() // Skip the row itself.
-                    for (const node of iterator) {
+                    iterator.forEach(node => {
                         addedNodes.delete(node)
                         removedNodes.delete(node)
                         modifiedNodes.delete(node)
                         formattingMap.delete(node)
-                    }
+                    })
 
                     // Remove the row's content.
                     while (row.firstChild) {
@@ -545,29 +548,31 @@ export function visualDomDiff(
                     }
                 }
             }
-        }
-    }
+        })
+
+        return
+    })
 
     // Mark up the content which has been removed.
-    for (removedNode of removedNodes) {
-        markUpNode(removedNode, 'DEL', removedClass)
-    }
+    removedNodes.forEach(node => {
+        markUpNode(node, 'DEL', removedClass)
+    })
 
     // Mark up the content which has been added.
-    for (addedNode of addedNodes) {
-        markUpNode(addedNode, 'INS', addedClass)
-    }
+    addedNodes.forEach(node => {
+        markUpNode(node, 'INS', addedClass)
+    })
 
     // Mark up the content which has been modified.
     if (!config.skipModified) {
-        for (const modifiedNode of modifiedNodes) {
+        modifiedNodes.forEach(modifiedNode => {
             markUpNode(modifiedNode, 'INS', modifiedClass)
-        }
+        })
     }
 
     // Add formatting.
-    for (const [textNode, formattingNodes] of formattingMap) {
-        for (const formattingNode of formattingNodes) {
+    formattingMap.forEach((formattingNodes, textNode) => {
+        formattingNodes.forEach(formattingNode => {
             const parentNode = textNode.parentNode as Node
             const previousSibling = textNode.previousSibling
 
@@ -581,8 +586,8 @@ export function visualDomDiff(
                 parentNode.insertBefore(clonedFormattingNode, textNode)
                 clonedFormattingNode.appendChild(textNode)
             }
-        }
-    }
+        })
+    })
 
     return rootOutputNode
 }

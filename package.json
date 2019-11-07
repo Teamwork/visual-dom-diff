@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "clean": "rimraf lib",
+    "prettier-fix": "prettier \"./src/**/*\" \"./demo/**/*\" \"!./**/*.jpg\" --list-different --write",
     "prettier": "prettier \"./src/**/*\" \"./demo/**/*\" \"!./**/*.jpg\" --list-different",
     "tslint": "tslint --project .",
     "tsc": "tsc -b .",
@@ -21,7 +22,8 @@
     "start:demo": "webpack-dev-server -d",
     "start:tsc": "tsc -b -w .",
     "preversion": "npm outdated && run-s build demo && git add docs",
-    "postversion": "git push && git push origin v${npm_package_version}"
+    "postversion": "git push && git push origin v${npm_package_version}",
+    "benchmark": "node benchmark"
   },
   "repository": {
     "type": "git",
@@ -48,6 +50,7 @@
     "@types/jest": "^24.0.18",
     "@types/jsdom": "^12.2.4",
     "babel-loader": "^8.0.6",
+    "benchmark": "^2.1.4",
     "clean-webpack-plugin": "^3.0.0",
     "core-js": "^3.2.1",
     "css-loader": "^3.2.0",

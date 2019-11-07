@@ -48,6 +48,22 @@ export function areArraysEqual<T>(
     return true
 }
 
+function getAttributeNames(element: Element): string[] {
+    if (element.getAttributeNames) {
+        return element.getAttributeNames()
+    } else {
+        const attributes = element.attributes
+        const length = attributes.length
+        const attributeNames = new Array(length)
+
+        for (let i = 0; i < length; i++) {
+            attributeNames[i] = attributes[i].name
+        }
+
+        return attributeNames
+    }
+}
+
 /**
  * Compares DOM nodes for equality.
  * @param node1 The first node to compare.
@@ -76,10 +92,8 @@ export function areNodesEqual(
             return false
         }
     } else if (isElement(node1)) {
-        const attributeNames1 = node1.getAttributeNames().sort()
-        const attributeNames2 = (node2 as typeof node1)
-            .getAttributeNames()
-            .sort()
+        const attributeNames1 = getAttributeNames(node1).sort()
+        const attributeNames2 = getAttributeNames(node2 as typeof node1).sort()
 
         if (!areArraysEqual(attributeNames1, attributeNames2)) {
             return false

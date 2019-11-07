@@ -1,7 +1,9 @@
 import { Diff } from 'diff-match-patch'
+import { JSDOM } from 'jsdom'
 import { optionsToConfig } from './config'
 import { diffText, isComment, isDocumentFragment, isText } from './util'
 
+const document = new JSDOM('').window.document
 const text = document.createTextNode('text')
 const span = document.createElement('SPAN')
 const div = document.createElement('DIV')
