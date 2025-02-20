@@ -64,6 +64,15 @@ function getAttributeNames(element: Element): string[] {
     }
 }
 
+function stripNewlines(nodes: NodeList): Node[] {
+    return Array.from(nodes).filter((node: Node) => {
+        return (
+            node.nodeName !== '#text' ||
+            (node.textContent && node.textContent.trim() !== '')
+        )
+    })
+}
+
 /**
  * Compares DOM nodes for equality.
  * @param node1 The first node to compare.
@@ -322,22 +331,23 @@ export function isTableValid(table: Node, verifyColumns: boolean): boolean {
     return validateTable(table)
 
     function validateTable({ childNodes }: Node): boolean {
-        const l = childNodes.length
+        const filteredChildNodes = stripNewlines(childNodes)
+        const l = filteredChildNodes.length
         let i = 0
 
-        if (i < l && childNodes[i].nodeName === 'CAPTION') {
+        if (i < l && filteredChildNodes[i].nodeName === 'CAPTION') {
             i++
         }
 
-        if (i < l && childNodes[i].nodeName === 'THEAD') {
-            if (!validateRowGroup(childNodes[i])) {
+        if (i < l && filteredChildNodes[i].nodeName === 'THEAD') {
+            if (!validateRowGroup(filteredChildNodes[i])) {
                 return false
             }
             i++
         }
 
-        if (i < l && childNodes[i].nodeName === 'TBODY') {
-            if (!validateRowGroup(childNodes[i])) {
+        if (i < l && filteredChildNodes[i].nodeName === 'TBODY') {
+            if (!validateRowGroup(filteredChildNodes[i])) {
                 return false
             }
             i++
@@ -345,8 +355,8 @@ export function isTableValid(table: Node, verifyColumns: boolean): boolean {
             return false
         }
 
-        if (i < l && childNodes[i].nodeName === 'TFOOT') {
-            if (!validateRowGroup(childNodes[i])) {
+        if (i < l && filteredChildNodes[i].nodeName === 'TFOOT') {
+            if (!validateRowGroup(filteredChildNodes[i])) {
                 return false
             }
             i++
@@ -356,11 +366,12 @@ export function isTableValid(table: Node, verifyColumns: boolean): boolean {
     }
 
     function validateRowGroup({ childNodes, nodeName }: Node): boolean {
-        if (nodeName === 'TBODY' && childNodes.length === 0) {
+        const filteredChildNodes = stripNewlines(childNodes)
+        if (nodeName === 'TBODY' && filteredChildNodes.length === 0) {
             return false
         }
-        for (let i = 0, l = childNodes.length; i < l; ++i) {
-            if (!validateRow(childNodes[i])) {
+        for (let i = 0, l = filteredChildNodes.length; i < l; ++i) {
+            if (!validateRow(filteredChildNodes[i])) {
                 return false
             }
         }
@@ -368,18 +379,19 @@ export function isTableValid(table: Node, verifyColumns: boolean): boolean {
     }
 
     function validateRow({ childNodes, nodeName }: Node): boolean {
-        if (nodeName !== 'TR' || childNodes.length === 0) {
+        const filteredChildNodes = stripNewlines(childNodes)
+        if (nodeName !== 'TR' || filteredChildNodes.length === 0) {
             return false
         }
         if (verifyColumns) {
             if (columnCount === undefined) {
-                columnCount = childNodes.length
-            } else if (columnCount !== childNodes.length) {
+                columnCount = filteredChildNodes.length
+            } else if (columnCount !== filteredChildNodes.length) {
                 return false
             }
         }
-        for (let i = 0, l = childNodes.length; i < l; ++i) {
-            if (!validateCell(childNodes[i])) {
+        for (let i = 0, l = filteredChildNodes.length; i < l; ++i) {
+            if (!validateCell(filteredChildNodes[i])) {
                 return false
             }
         }
