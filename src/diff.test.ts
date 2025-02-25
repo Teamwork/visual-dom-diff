@@ -511,17 +511,6 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
-        'table - identical (but with newline breaks)',
-        htmlToFragment(
-            '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
-        ),
-        htmlToFragment(
-            '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
-        ),
-        '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
-        undefined,
-    ],
-    [
         'table - added',
         htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
         htmlToFragment(
@@ -658,6 +647,17 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         ),
         htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
         '<table class="vdd-removed"><tbody><tr><td colspan="2"></td></tr></tbody></table><table class="vdd-added"><tbody><tr><td>one</td></tr></tbody></table>',
+        undefined,
+    ],
+    [
+        'table - valid but with newline breaks',
+        htmlToFragment(
+            '<table>\n<thead>\n<tr><th>one</th>\n<th>two</th>\n<th>three</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>1</td>\n<td>2</td>\n<td>3</td>\n</tr>\n</tbody>\n</table>',
+        ),
+        htmlToFragment(
+            '<table>\n<thead>\n<tr><th>one</th>\n<th>two</th>\n<th>three</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>1</td>\n<td>2</td>\n<td>3</td>\n</tr>\n</tbody>\n</table>',
+        ),
+        '<table>\n<thead>\n<tr><th>one</th>\n<th>two</th>\n<th>three</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>1</td>\n<td>2</td>\n<td>3</td>\n</tr>\n</tbody>\n</table>',
         undefined,
     ],
     [
