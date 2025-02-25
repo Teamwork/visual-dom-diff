@@ -511,6 +511,17 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
+        'table - identical (but with newline breaks)',
+        htmlToFragment(
+            '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
+        ),
+        htmlToFragment(
+            '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
+        ),
+        '<table>\n<thead>\n<tr><th>Environment variable</th>\n<th>Zope option</th>\n<th>Default value</th>\n</tr>\n</thead>\n<tbody>\n<tr><td>DEBUG_MODE</td>\n<td>debug-mode</td>\n<td>off</td>\n</tr>\n</tbody>\n</table>',
+        undefined,
+    ],
+    [
         'table - added',
         htmlToFragment('<table><tbody><tr><td>one</td></tr></tbody></table>'),
         htmlToFragment(
