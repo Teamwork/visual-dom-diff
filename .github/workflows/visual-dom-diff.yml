@@ -1,0 +1,37 @@
+name: Pull request checks
+
+on:
+  pull_request:
+      branches: [ master ]
+
+env:
+  GH_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm' 
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run Prettier check
+        run: npm run prettier
+
+      - name: Run TSLint
+        run: npm run tslint
+
+      - name: Build and test
+        run: npm run build
