@@ -54,11 +54,11 @@ export function visualDomDiff(
     const {
         addedClass,
         diffText,
+        ignoreAttributes,
         modifiedClass,
         removedClass,
         skipSelf,
         skipChildren,
-        ignoreAttributes,
     } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>

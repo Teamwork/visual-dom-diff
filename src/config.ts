@@ -25,6 +25,12 @@ export interface Options {
      */
     modifiedClass?: string
     /**
+     * If `true`, differences in attribute names and values are ignored when comparing nodes:
+     * the first node's attributes are discarded in favor of the second node's attributes.
+     * Default is `false`.
+     */
+    ignoreAttributes?: boolean
+    /**
      * The class name to use to mark up removed content.
      * Default is `'vdd-removed'`.
      */
@@ -34,12 +40,6 @@ export interface Options {
      * Default is `false`.
      */
     skipModified?: boolean
-    /**
-     * If `true`, differences in attribute names and values are ignored when comparing nodes:
-     * the first node's attributes are discarded in favor of the second node's attributes.
-     * Default is `false`.
-     */
-    ignoreAttributes?: boolean
     /**
      * Indicates if the child nodes of the specified `node` should be ignored.
      * It is useful for ignoring child nodes of an element representing some embedded content,
@@ -65,10 +65,10 @@ export interface Options {
 
 export interface Config extends Options, DomIteratorOptions {
     readonly addedClass: string
+    readonly ignoreAttributes: boolean
     readonly modifiedClass: string
     readonly removedClass: string
     readonly skipModified: boolean
-    readonly ignoreAttributes: boolean
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
     readonly diffText: DiffTextType
@@ -111,8 +111,8 @@ export function optionsToConfig({
     addedClass = 'vdd-added',
     modifiedClass = 'vdd-modified',
     removedClass = 'vdd-removed',
-    skipModified = false,
     ignoreAttributes = false,
+    skipModified = false,
     skipChildren,
     skipSelf,
     diffText = diffTextDefault,
