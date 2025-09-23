@@ -244,14 +244,24 @@ describe.each<[string, (() => string[]) | undefined]>([
                 )
             })
             test('elements with different attribute names being ignored', () => {
-                expect(areNodesEqual(span, differentAttributeNamesSpan, true, true)).toBe(
-                    true,
-                )
+                expect(
+                    areNodesEqual(
+                        span,
+                        differentAttributeNamesSpan,
+                        true,
+                        true,
+                    ),
+                ).toBe(true)
             })
             test('elements with different attribute values being ignored', () => {
-                expect(areNodesEqual(span, differentAttributeValuesSpan, true, true)).toBe(
-                    true,
-                )
+                expect(
+                    areNodesEqual(
+                        span,
+                        differentAttributeValuesSpan,
+                        true,
+                        true,
+                    ),
+                ).toBe(true)
             })
             test('elements with different childNodes', () => {
                 expect(areNodesEqual(span, differentChildNodesSpan)).toBe(true)

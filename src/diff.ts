@@ -159,7 +159,7 @@ export function visualDomDiff(
         }
     }
 
-    function appendCommonChild(node: Node, ignoreAttributes?: boolean): void {
+    function appendCommonChild(node: Node): void {
         /* istanbul ignore if */
         if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
             return never()
@@ -175,7 +175,14 @@ export function visualDomDiff(
                 modifiedNodes.add(node)
             } else {
                 for (let i = 0; i < length; ++i) {
-                    if (!areNodesEqual(oldFormatting[i], newFormatting[i], false, ignoreAttributes)) {
+                    if (
+                        !areNodesEqual(
+                            oldFormatting[i],
+                            newFormatting[i],
+                            false,
+                            ignoreAttributes,
+                        )
+                    ) {
                         modifiedNodes.add(node)
                         break
                     }
@@ -359,7 +366,6 @@ export function visualDomDiff(
                     isText(newNode)
                         ? document.createTextNode(text)
                         : newNode.cloneNode(false),
-                    ignoreAttributes,
                 )
             } else {
                 appendOldChild(

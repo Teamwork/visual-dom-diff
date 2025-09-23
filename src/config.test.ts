@@ -151,10 +151,10 @@ describe('simple options', () => {
         const config = optionsToConfig({
             addedClass: 'ADDED',
             diffText: customDiffText,
+            ignoreAttributes: true,
             modifiedClass: 'MODIFIED',
             removedClass: 'REMOVED',
             skipModified: true,
-            ignoreAttributes: true,
         })
         expect(config.addedClass).toBe('ADDED')
         expect(config.diffText).toBe(customDiffText)
