@@ -84,6 +84,7 @@ export function areNodesEqual(
     node1: Node,
     node2: Node,
     deep: boolean = false,
+    ignoreAttributes = false,
 ): boolean {
     if (node1 === node2) {
         return true
@@ -100,7 +101,7 @@ export function areNodesEqual(
         if (node1.data !== (node2 as typeof node1).data) {
             return false
         }
-    } else if (isElement(node1)) {
+    } else if (isElement(node1) && !ignoreAttributes) {
         const attributeNames1 = getAttributeNames(node1).sort()
         const attributeNames2 = getAttributeNames(node2 as typeof node1).sort()
 

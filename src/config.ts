@@ -35,6 +35,12 @@ export interface Options {
      */
     skipModified?: boolean
     /**
+     * If `true`, differences in attribute names and values are ignored when comparing nodes:
+     * the first node's attributes are discarded in favor of the second node's attributes.
+     * Default is `false`.
+     */
+    ignoreAttributes?: boolean
+    /**
      * Indicates if the child nodes of the specified `node` should be ignored.
      * It is useful for ignoring child nodes of an element representing some embedded content,
      * which should not be compared. Return `undefined` for the default behaviour.
@@ -62,6 +68,7 @@ export interface Config extends Options, DomIteratorOptions {
     readonly modifiedClass: string
     readonly removedClass: string
     readonly skipModified: boolean
+    readonly ignoreAttributes: boolean
     readonly skipChildren: NodePredicate
     readonly skipSelf: NodePredicate
     readonly diffText: DiffTextType
@@ -105,6 +112,7 @@ export function optionsToConfig({
     modifiedClass = 'vdd-modified',
     removedClass = 'vdd-removed',
     skipModified = false,
+    ignoreAttributes = false,
     skipChildren,
     skipSelf,
     diffText = diffTextDefault,
@@ -115,6 +123,7 @@ export function optionsToConfig({
         modifiedClass,
         removedClass,
         skipModified,
+        ignoreAttributes,
         skipChildren(node: Node): boolean {
             if (
                 !isElement(node) &&

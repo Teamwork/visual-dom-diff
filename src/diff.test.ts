@@ -156,6 +156,23 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
+        'different images with ignored attributes',
+        (() => {
+            const img = document.createElement('IMG')
+            img.setAttribute('src', 'image.png')
+            return img
+        })(),
+        (() => {
+            const img = document.createElement('IMG')
+            img.setAttribute('src', 'image.jpg')
+            return img
+        })(),
+        '<img src="image.jpg">',
+        {
+            ignoreAttributes: true
+        },
+    ],
+    [
         'complex identical content',
         htmlToFragment(
             trimLines(`
@@ -360,6 +377,15 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
+        'differing image src being ignored',
+        htmlToFragment('<div><img src="image.png"></div>'),
+        htmlToFragment('<div><img src="image.jpg"></div>'),
+        '<div><img src="image.jpg"></div>',
+        {
+            ignoreAttributes: true
+        },
+    ],
+    [
         'differing paragraph attribute - the same text diff',
         htmlToFragment('<p data-value="old">test</p>'),
         htmlToFragment('<p data-value="new">test</p>'),
@@ -367,11 +393,29 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         undefined,
     ],
     [
+        'differing paragraph attribute being ignored - the same text diff',
+        htmlToFragment('<p data-value="old">test</p>'),
+        htmlToFragment('<p data-value="new">test</p>'),
+        '<p data-value="new">test</p>',
+        {
+            ignoreAttributes: true
+        },
+    ],
+    [
         'differing paragraph attribute - different text diff',
         htmlToFragment('<p data-value="old">test</p>'),
         htmlToFragment('<p data-value="new">hello</p>'),
         '<p data-value="new" class="vdd-modified"><del class="vdd-removed">test</del><ins class="vdd-added">hello</ins></p>',
         undefined,
+    ],
+    [
+        'differing paragraph attribute being ignored - different text diff',
+        htmlToFragment('<p data-value="old">test</p>'),
+        htmlToFragment('<p data-value="new">hello</p>'),
+        '<p data-value="new"><del class="vdd-removed">test</del><ins class="vdd-added">hello</ins></p>',
+        {
+            ignoreAttributes: true
+        },
     ],
     [
         'multiple spaces between words',
@@ -917,6 +961,45 @@ test.each<[string, Node, Node, string, Options | undefined]>([
         ),
         '<table><thead class="vdd-removed"><tr><th>1111</th><th>2222</th><th>3333</th></tr></thead><tbody><tr><th>first column</th><th class="vdd-removed">second column</th><th>last column</th></tr></tbody></table>',
         undefined,
+    ],
+    [
+        'ignore different attribute names',
+        htmlToFragment(
+            '<span data-a="a">foo</span>',
+        ),
+        htmlToFragment(
+            '<span data-b="b">foo</span>',
+        ),
+        '<span data-b="b">foo</span>',
+        {
+            ignoreAttributes: true,
+        },
+    ],
+    [
+        'ignore different attribute values',
+        htmlToFragment(
+            '<span data-a="a">foo</span>',
+        ),
+        htmlToFragment(
+            '<span data-a="b">foo</span>',
+        ),
+        '<span data-a="b">foo</span>',
+        {
+            ignoreAttributes: true,
+        },
+    ],
+    [
+        'real-life case for ignoring attributes in markdown-generated headings',
+        htmlToFragment(
+            '<h1 id="heading">heading</h1>',
+        ),
+        htmlToFragment(
+            '<h1 id="heading-2">heading 2</h1>',
+        ),
+        '<h1 id="heading-2">heading<ins class="vdd-added"> 2</ins></h1>',
+        {
+            ignoreAttributes: true,
+        },
     ],
 ])(
     '%s',

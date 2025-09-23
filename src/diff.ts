@@ -58,6 +58,7 @@ export function visualDomDiff(
         removedClass,
         skipSelf,
         skipChildren,
+        ignoreAttributes,
     } = config
     const notSkipSelf = (node: Node): boolean => !skipSelf(node)
     const getDepth = (node: Node, rootNode: Node): number =>
@@ -158,7 +159,7 @@ export function visualDomDiff(
         }
     }
 
-    function appendCommonChild(node: Node): void {
+    function appendCommonChild(node: Node, ignoreAttributes?: boolean): void {
         /* istanbul ignore if */
         if (oldOutputNode !== newOutputNode || addedNode || removedNode) {
             return never()
@@ -174,14 +175,14 @@ export function visualDomDiff(
                 modifiedNodes.add(node)
             } else {
                 for (let i = 0; i < length; ++i) {
-                    if (!areNodesEqual(oldFormatting[i], newFormatting[i])) {
+                    if (!areNodesEqual(oldFormatting[i], newFormatting[i], false, ignoreAttributes)) {
                         modifiedNodes.add(node)
                         break
                     }
                 }
             }
         } else {
-            if (!areNodesEqual(oldNode, newNode)) {
+            if (!areNodesEqual(oldNode, newNode, false, ignoreAttributes)) {
                 modifiedNodes.add(node)
             }
 
@@ -352,12 +353,13 @@ export function visualDomDiff(
                         nodeNameOverride(newNode.nodeName) &&
                         !skipChildren(oldNode) &&
                         !skipChildren(newNode)) ||
-                    areNodesEqual(oldNode, newNode))
+                    areNodesEqual(oldNode, newNode, false, ignoreAttributes))
             ) {
                 appendCommonChild(
                     isText(newNode)
                         ? document.createTextNode(text)
                         : newNode.cloneNode(false),
+                    ignoreAttributes,
                 )
             } else {
                 appendOldChild(
