@@ -141,6 +141,7 @@ describe('simple options', () => {
         expect(config.modifiedClass).toBe('vdd-modified')
         expect(config.removedClass).toBe('vdd-removed')
         expect(config.skipModified).toBe(false)
+        expect(config.ignoreAttributes).toBe(false)
     })
     test('override', () => {
         const customDiffText = (
@@ -150,12 +151,14 @@ describe('simple options', () => {
         const config = optionsToConfig({
             addedClass: 'ADDED',
             diffText: customDiffText,
+            ignoreAttributes: true,
             modifiedClass: 'MODIFIED',
             removedClass: 'REMOVED',
             skipModified: true,
         })
         expect(config.addedClass).toBe('ADDED')
         expect(config.diffText).toBe(customDiffText)
+        expect(config.ignoreAttributes).toBe(true)
         expect(config.modifiedClass).toBe('MODIFIED')
         expect(config.removedClass).toBe('REMOVED')
         expect(config.skipModified).toBe(true)

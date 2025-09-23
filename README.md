@@ -33,6 +33,7 @@ Changes to attributes of structural elements are treated as modifications (`vdd-
 #### Options
 
 -   `addedClass: string = 'vdd-added'` The class used for annotating content additions.
+-   `ignoreAttributes: boolean = false` If `true`, then attribute names and values are ignored when comparing nodes.
 -   `modifiedClass: string = 'vdd-modified'` The class used for annotating content modifications.
 -   `removedClass: string = 'vdd-removed'` The class used for annotating content removals.
 -   `skipModified: boolean = false` If `true`, then formatting changes are NOT wrapped in `<ins class="vdd-modified">` and modified structural elements are NOT annotated with the `vdd-modified` class.

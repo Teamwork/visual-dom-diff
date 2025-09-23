@@ -54,6 +54,7 @@ export function visualDomDiff(
     const {
         addedClass,
         diffText,
+        ignoreAttributes,
         modifiedClass,
         removedClass,
         skipSelf,
@@ -174,14 +175,21 @@ export function visualDomDiff(
                 modifiedNodes.add(node)
             } else {
                 for (let i = 0; i < length; ++i) {
-                    if (!areNodesEqual(oldFormatting[i], newFormatting[i])) {
+                    if (
+                        !areNodesEqual(
+                            oldFormatting[i],
+                            newFormatting[i],
+                            false,
+                            ignoreAttributes,
+                        )
+                    ) {
                         modifiedNodes.add(node)
                         break
                     }
                 }
             }
         } else {
-            if (!areNodesEqual(oldNode, newNode)) {
+            if (!areNodesEqual(oldNode, newNode, false, ignoreAttributes)) {
                 modifiedNodes.add(node)
             }
 
@@ -352,7 +360,7 @@ export function visualDomDiff(
                         nodeNameOverride(newNode.nodeName) &&
                         !skipChildren(oldNode) &&
                         !skipChildren(newNode)) ||
-                    areNodesEqual(oldNode, newNode))
+                    areNodesEqual(oldNode, newNode, false, ignoreAttributes))
             ) {
                 appendCommonChild(
                     isText(newNode)
