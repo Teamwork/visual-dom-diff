@@ -311,16 +311,18 @@ export function markUpNode(
     const previousSibling = node.previousSibling
 
     if (isElement(node)) {
-        node.classList.add(className)
+        node.className = className
     } else if (
         previousSibling &&
         previousSibling.nodeName === elementName &&
-        (previousSibling as Element).classList.contains(className)
+        [...className.trim().split(/\s+/)].every(c =>
+            (previousSibling as Element).classList.contains(c),
+        )
     ) {
         previousSibling.appendChild(node)
     } else {
         const wrapper = document.createElement(elementName)
-        wrapper.classList.add(className)
+        wrapper.className = className
         parentNode.insertBefore(wrapper, node)
         wrapper.appendChild(node)
     }

@@ -439,13 +439,28 @@ test.each<[string, Node, Node, string, Options | undefined]>([
     ],
     [
         'custom class names',
-        htmlToFragment('<strong>Modified</strong> Removed'),
-        htmlToFragment('Modified Added'),
-        '<ins class="MODIFIED">Modified</ins> <del class="REMOVED">Remov</del><ins class="ADDED">Add</ins>ed',
+        htmlToFragment(
+            '<strong>Modified</strong> Removed <h1 id="heading">heading</h1>',
+        ),
+        htmlToFragment('Modified Added <h1 id="heading-2">heading 2</h1>'),
+        '<ins class="MODIFIED">Modified</ins> <del class="REMOVED">Remov</del><ins class="ADDED">Add</ins>ed <h1 id="heading-2" class="MODIFIED">heading<ins class="ADDED"> 2</ins></h1>',
         {
             addedClass: 'ADDED',
             modifiedClass: 'MODIFIED',
             removedClass: 'REMOVED',
+        },
+    ],
+    [
+        'multiple custom class names',
+        htmlToFragment(
+            '<strong>Modified</strong> Removed <h1 id="heading">heading</h1>',
+        ),
+        htmlToFragment('Modified Added <h1 id="heading-2">heading 2</h1>'),
+        '<ins class="MODIFIED MODIFIED-2">Modified</ins> <del class="REMOVED REMOVED-2">Remov</del><ins class="ADDED ADDED-2">Add</ins>ed <h1 id="heading-2" class="MODIFIED MODIFIED-2">heading<ins class="ADDED ADDED-2"> 2</ins></h1>',
+        {
+            addedClass: 'ADDED ADDED-2',
+            modifiedClass: 'MODIFIED MODIFIED-2',
+            removedClass: 'REMOVED REMOVED-2',
         },
     ],
     [

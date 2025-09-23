@@ -15,17 +15,20 @@ import {
  */
 export interface Options {
     /**
-     * The class name to use to mark up inserted content.
+     * The class name to use to mark up inserted content. May contain multiple classes separated
+     * by a space.
      * Default is `'vdd-added'`.
      */
     addedClass?: string
     /**
-     * The class name to use to mark up modified content.
+     * The class name to use to mark up modified content. May contain multiple classes separated
+     * by a space.
      * Default is `'vdd-modified'`.
      */
     modifiedClass?: string
     /**
-     * The class name to use to mark up removed content.
+     * The class name to use to mark up removed content. May contain multiple classes separated
+     * by a space.
      * Default is `'vdd-removed'`.
      */
     removedClass?: string
